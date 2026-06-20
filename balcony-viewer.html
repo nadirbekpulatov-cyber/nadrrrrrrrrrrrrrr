@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Просмотрщик Балкона</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            min-width: 250px;
+        }
+
+        #control-panel h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-group label:hover {
+            color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #ddd;
+            border-radius: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        input[type="checkbox"]:checked + .toggle-switch {
+            background: #667eea;
+        }
+
+        input[type="checkbox"]:checked + .toggle-switch::after {
+            transform: translateX(26px);
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+            z-index: 100;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Загрузка 3D модели...</div>
+    </div>
+
+    <div id="control-panel">
+        <h2>🏠 Управление объектами</h2>
+        
+        <div class="control-group">
+            <label>
+                Кондиционер
+                <input type="checkbox" id="toggle-ac" checked>
+                <div class="toggle-switch"></div>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label>
+                Чемоданы
+                <input type="checkbox" id="toggle-suitcases" checked>
+                <div class="toggle-switch"></div>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label>
+                Гитара
+                <input type="checkbox" id="toggle-guitar" checked>
+                <div class="toggle-switch"></div>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label>
+                Сушилка для белья
+                <input type="checkbox" id="toggle-dryer" checked>
+                <div class="toggle-switch"></div>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label>
+                Стул
+                <input type="checkbox" id="toggle-chair">
+                <div class="toggle-switch"></div>
+            </label>
+        </div>
+    </div>
+
+    <div id="info">
+        🖱️ Левая кнопка: Вращение | Колесо: Масштаб | Правая кнопка: Панорамирование
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+        // Глобальные переменные
+        let scene, camera, renderer, controls;
+        let balconyModel = null;
+        let objects = {};
+        let chair = null;
+
+        // Пути к файлам (замените на свои)
+        const MODEL_PATH = 'balcony.glb'; // Ваша 3D модель балкона
+        const TEXTURE_PATHS = {
+            brick: 'photo_2026-06-21_01-38-40.jpg',
+            tile: 'photo_2026-06-21_01-38-52.jpg',
+            other: 'photo_2026-06-21_01-39-07.jpg'
+        };
+
+        // Инициализация сцены
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            // Создание сцены
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87ceeb);
+            scene.fog = new THREE.Fog(0x87ceeb, 20, 100);
+
+            // Настройка камеры
+            camera = new THREE.PerspectiveCamera(
+                60,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(5, 3, 5);
+
+            // Рендерер
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            container.appendChild(renderer.domElement);
+
+            // Контролы орбиты
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 2;
+            controls.maxDistance = 50;
+            controls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+            // Освещение
+            setupLighting();
+
+            // Загрузка модели
+            loadModel();
+
+            // Обработчики событий
+            window.addEventListener('resize', onWindowResize);
+            setupControlPanel();
+
+            // Анимационный цикл
+            animate();
+        }
+
+        // Настройка освещения для фотореалистичности
+        function setupLighting() {
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            // Directional light (солнце)
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            directionalLight.position.set(10, 15, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            directionalLight.shadow.camera.left = -15;
+            directionalLight.shadow.camera.right = 15;
+            directionalLight.shadow.camera.top = 15;
+            directionalLight.shadow.camera.bottom = -15;
+            directionalLight.shadow.bias = -0.0001;
+            scene.add(directionalLight);
+
+            // Hemisphere light (небо/земля)
+            const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x3d5c5c, 0.6);
+            scene.add(hemisphereLight);
+
+            // Fill lights для лучших теней
+            const fillLight1 = new THREE.DirectionalLight(0xffeedd, 0.3);
+            fillLight1.position.set(-10, 5, -10);
+            scene.add(fillLight1);
+
+            const fillLight2 = new THREE.DirectionalLight(0xddeeff, 0.2);
+            fillLight2.position.set(0, 10, -15);
+            scene.add(fillLight2);
+        }
+
+        // Загрузка 3D модели
+        function loadModel() {
+            const loader = new GLTFLoader();
+            
+            loader.load(
+                MODEL_PATH,
+                (gltf) => {
+                    balconyModel = gltf.scene;
+                    
+                    // Настройка теней для всех мешей
+                    balconyModel.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            
+                            // Сохраняем объекты по именам для управления
+                            if (child.name.includes('ac') || child.name.includes('conditioner')) {
+                                objects.ac = child;
+                            }
+                            if (child.name.includes('suitcase')) {
+                                objects.suitcases = child;
+                            }
+                            if (child.name.includes('guitar')) {
+                                objects.guitar = child;
+                            }
+                            if (child.name.includes('dryer')) {
+                                objects.dryer = child;
+                            }
+                        }
+                    });
+
+                    scene.add(balconyModel);
+                    
+                    // Скрываем индикатор загрузки
+                    document.getElementById('loading').classList.add('hidden');
+                    
+                    console.log('Модель успешно загружена');
+                },
+                (progress) => {
+                    const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                    console.log(`Загрузка: ${percent}%`);
+                },
+                (error) => {
+                    console.error('Ошибка загрузки модели:', error);
+                    document.getElementById('loading').innerHTML = `
+                        <div style="color: red;">❌ Ошибка загрузки модели</div>
+                        <div style="margin-top: 10px; font-size: 12px;">Убедитесь, что файл ${MODEL_PATH} существует</div>
+                    `;
+                    
+                    // Создаем тестовую сцену для демонстрации
+                    createTestScene();
+                }
+            );
+        }
+
+        // Создание тестовой сцены (если модель не загрузилась)
+        function createTestScene() {
+            // Пол (плитка)
+            const floorGeometry = new THREE.PlaneGeometry(10, 8);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x8b7355,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+
+            // Стена (кирпич)
+            const wallGeometry = new THREE.BoxGeometry(10, 4, 0.3);
+            const wallMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xb22222,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(0, 2, -4);
+            wall.castShadow = true;
+            wall.receiveShadow = true;
+            scene.add(wall);
+
+            // Кондиционер
+            const acGeometry = new THREE.BoxGeometry(1.5, 0.5, 0.3);
+            const acMaterial = new THREE.MeshStandardMaterial({ color: 0xdddddd });
+            const ac = new THREE.Mesh(acGeometry, acMaterial);
+            ac.position.set(3, 3, -3.8);
+            ac.castShadow = true;
+            objects.ac = ac;
+            scene.add(ac);
+
+            // Чемоданы
+            const suitcaseGeometry = new THREE.BoxGeometry(0.6, 0.4, 0.3);
+            const suitcaseMaterial = new THREE.MeshStandardMaterial({ color: 0x4a4a4a });
+            const suitcase1 = new THREE.Mesh(suitcaseGeometry, suitcaseMaterial);
+            suitcase1.position.set(-2, 0.2, 0);
+            suitcase1.castShadow = true;
+            const suitcase2 = new THREE.Mesh(suitcaseGeometry, suitcaseMaterial);
+            suitcase2.position.set(-1.5, 0.2, 0.3);
+            suitcase2.castShadow = true;
+            objects.suitcases = [suitcase1, suitcase2];
+            scene.add(suitcase1, suitcase2);
+
+            // Гитара
+            const guitarGroup = new THREE.Group();
+            const guitarBodyGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+            const guitarNeckGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.8);
+            const guitarMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+            const guitarBody = new THREE.Mesh(guitarBodyGeometry, guitarMaterial);
+            const guitarNeck = new THREE.Mesh(guitarNeckGeometry, guitarMaterial);
+            guitarNeck.rotation.x = Math.PI / 2;
+            guitarNeck.position.z = 0.4;
+            guitarGroup.add(guitarBody, guitarNeck);
+            guitarGroup.position.set(1, 0.3, 1);
+            guitarGroup.rotation.z = Math.PI / 4;
+            objects.guitar = guitarGroup;
+            scene.add(guitarGroup);
+
+            // Сушилка
+            const dryerGroup = new THREE.Group();
+            const poleGeometry = new THREE.CylinderGeometry(0.03, 0.03, 2);
+            const poleMaterial = new THREE.MeshStandardMaterial({ color: 0x888888 });
+            const pole1 = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole1.position.set(-0.5, 1, 0);
+            const pole2 = new THREE.Mesh(poleGeometry, poleMaterial);
+            pole2.position.set(0.5, 1, 0);
+            const barGeometry = new THREE.CylinderGeometry(0.02, 0.02, 1.2);
+            const bar = new THREE.Mesh(barGeometry, poleMaterial);
+            bar.rotation.x = Math.PI / 2;
+            bar.position.set(0, 1.8, 0);
+            dryerGroup.add(pole1, pole2, bar);
+            dryerGroup.position.set(-3, 0, 2);
+            objects.dryer = dryerGroup;
+            scene.add(dryerGroup);
+
+            document.getElementById('loading').classList.add('hidden');
+            console.log('Тестовая сцена создана');
+        }
+
+        // Создание стула
+        function createChair() {
+            if (chair) return chair;
+
+            const chairGroup = new THREE.Group();
+            
+            // Сиденье
+            const seatGeometry = new THREE.BoxGeometry(0.5, 0.05, 0.5);
+            const seatMaterial = new THREE.MeshStandardMaterial({ color: 0x654321 });
+            const seat = new THREE.Mesh(seatGeometry, seatMaterial);
+            seat.position.y = 0.45;
+            chairGroup.add(seat);
+
+            // Ножки
+            const legGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.45);
+            const legMaterial = new THREE.MeshStandardMaterial({ color: 0x4a3520 });
+            
+            const positions = [
+                [-0.2, 0.225, -0.2],
+                [0.2, 0.225, -0.2],
+                [-0.2, 0.225, 0.2],
+                [0.2, 0.225, 0.2]
+            ];
+
+            positions.forEach(pos => {
+                const leg = new THREE.Mesh(legGeometry, legMaterial);
+                leg.position.set(...pos);
+                chairGroup.add(leg);
+            });
+
+            // Спинка
+            const backGeometry = new THREE.BoxGeometry(0.5, 0.4, 0.05);
+            const back = new THREE.Mesh(backGeometry, seatMaterial);
+            back.position.set(0, 0.65, -0.225);
+            back.rotation.x = 0.1;
+            chairGroup.add(back);
+
+            chairGroup.position.set(2, 0, 1);
+            chairGroup.castShadow = true;
+            chairGroup.traverse(child => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            return chairGroup;
+        }
+
+        // Настройка панели управления
+        function setupControlPanel() {
+            // Кондиционер
+            document.getElementById('toggle-ac').addEventListener('change', (e) => {
+                if (objects.ac) {
+                    objects.ac.visible = e.target.checked;
+                }
+            });
+
+            // Чемоданы
+            document.getElementById('toggle-suitcases').addEventListener('change', (e) => {
+                if (objects.suitcases) {
+                    if (Array.isArray(objects.suitcases)) {
+                        objects.suitcases.forEach(obj => obj.visible = e.target.checked);
+                    } else {
+                        objects.suitcases.visible = e.target.checked;
+                    }
+                }
+            });
+
+            // Гитара
+            document.getElementById('toggle-guitar').addEventListener('change', (e) => {
+                if (objects.guitar) {
+                    objects.guitar.visible = e.target.checked;
+                }
+            });
+
+            // Сушилка
+            document.getElementById('toggle-dryer').addEventListener('change', (e) => {
+                if (objects.dryer) {
+                    objects.dryer.visible = e.target.checked;
+                }
+            });
+
+            // Стул
+            document.getElementById('toggle-chair').addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    if (!chair) {
+                        chair = createChair();
+                        scene.add(chair);
+                    } else {
+                        chair.visible = true;
+                    }
+                } else {
+                    if (chair) {
+                        chair.visible = false;
+                    }
+                }
+            });
+        }
+
+        // Обработка изменения размера окна
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Анимационный цикл
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Запуск приложения
+        init();
+    </script>
+</body>
+</html>
