@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALPHA EDUCATION — Дашборд</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-gold: #fbbf24;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: #334155;
+            --pill-bg: #334155;
+            --pill-text: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .last-updated {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Filters */
+        .filters-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            min-width: 160px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .filter-select:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        .reset-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Active pills */
+        .active-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--pill-bg);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--pill-text);
+        }
+
+        .pill-remove {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .pill-remove:hover {
+            opacity: 1;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: var(--accent-gold);
+        }
+
+        .metric-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .metric-sub {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .metric-change.positive {
+            color: var(--accent-green);
+        }
+
+        .metric-change.negative {
+            color: var(--accent-red);
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+
+        .no-data {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Table */
+        .table-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.2s;
+        }
+
+        th:hover {
+            color: var(--accent-gold);
+        }
+
+        th.sorted-asc::after {
+            content: ' ▲';
+            color: var(--accent-gold);
+        }
+
+        th.sorted-desc::after {
+            content: ' ▼';
+            color: var(--accent-gold);
+        }
+
+        tr:hover {
+            background: var(--bg-hover);
+        }
+
+        td {
+            font-size: 14px;
+        }
+
+        .manager-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .program-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--pill-bg);
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 4px;
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filters-row {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>ALPHA EDUCATION</h1>
+                <p class="subtitle">Дашборд по продажам и конверсиям</p>
+            </div>
+            <div class="last-updated" id="lastUpdated"></div>
+        </header>
+
+        <!-- Filters -->
+        <section class="filters-section">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="filter-label">Период</label>
+                    <select class="filter-select" id="periodFilter">
+                        <option value="all">Все время</option>
+                        <option value="6m">Последние 6 месяцев</option>
+                        <option value="3m">Последние 3 месяца</option>
+                        <option value="1m">Последний месяц</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Менеджер</label>
+                    <select class="filter-select" id="managerFilter">
+                        <option value="all">Все менеджеры</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Программа</label>
+                    <select class="filter-select" id="programFilter">
+                        <option value="all">Все программы</option>
+                        <option value="MN">MN</option>
+                        <option value="school">Школа Менеджмента</option>
+                    </select>
+                </div>
+                <button class="reset-btn" id="resetBtn">Сбросить фильтры</button>
+            </div>
+            <div class="active-filters" id="activeFilters"></div>
+        </section>
+
+        <!-- Metrics -->
+        <section class="metrics-grid" id="metricsGrid">
+            <div class="metric-card">
+                <div class="metric-label">Всего лидов</div>
+                <div class="metric-value" id="totalLeads">-</div>
+                <div class="metric-sub">за выбранный период</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Завершено сделок</div>
+                <div class="metric-value" id="completedDeals">-</div>
+                <div class="metric-sub" id="conversionRate">Конверсия: -%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Отток</div>
+                <div class="metric-value" id="churnedLeads">-</div>
+                <div class="metric-sub" id="churnRate">Процент: -%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Общий бюджет</div>
+                <div class="metric-value" id="totalBudget">-</div>
+                <div class="metric-sub">млрд сум</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Средний чек</div>
+                <div class="metric-value" id="avgCheck">-</div>
+                <div class="metric-sub">млн сум</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Активных менеджеров</div>
+                <div class="metric-value" id="activeManagers">-</div>
+                <div class="metric-sub">работают с лидами</div>
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="charts-grid">
+            <div class="chart-card">
+                <h3 class="chart-title">Динамика лидов по месяцам</h3>
+                <div class="chart-container" id="leadsChart"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">Конверсия по месяцам</h3>
+                <div class="chart-container" id="conversionChart"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">Причины оттока</h3>
+                <div class="chart-container" id="churnChart"></div>
+            </div>
+            <div class="chart-card">
+                <h3 class="chart-title">Распределение по программам</h3>
+                <div class="chart-container" id="programChart"></div>
+            </div>
+        </section>
+
+        <!-- Managers Table -->
+        <section class="table-section">
+            <h3 class="table-title">Эффективность менеджеров</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th data-sort="name">Менеджер</th>
+                        <th data-sort="total">Всего лидов</th>
+                        <th data-sort="completed">Завершено</th>
+                        <th data-sort="conversion">Конверсия</th>
+                        <th data-sort="budget">Бюджет (млрд)</th>
+                    </tr>
+                </thead>
+                <tbody id="managersTableBody">
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script>
+        // ============================================
+        // RAW DATA — замените этот блок на данные из data.json
+        // ============================================
+        const RAW = {
+            "monthly": [
+                {"month": "Jan 2025", "total": 45, "completed": 12, "churned": 8, "budget": 2.3},
+                {"month": "Feb 2025", "total": 52, "completed": 15, "churned": 10, "budget": 2.8},
+                {"month": "Mar 2025", "total": 61, "completed": 18, "churned": 12, "budget": 3.1},
+                {"month": "Apr 2025", "total": 58, "completed": 20, "churned": 9, "budget": 3.5},
+                {"month": "May 2025", "total": 67, "completed": 22, "churned": 11, "budget": 3.8},
+                {"month": "Jun 2025", "total": 72, "completed": 25, "churned": 13, "budget": 4.2}
+            ],
+            "managers": [
+                {"id": "anna_petrova", "name": "Анна Петрова", "total": 85, "completed": 32, "budget": 5.2, "programs": {"MN": 50, "Школа Менеджмента": 35}},
+                {"id": "ivan_sidorov", "name": "Иван Сидоров", "total": 78, "completed": 28, "budget": 4.8, "programs": {"MN": 45, "Школа Менеджмента": 33}},
+                {"id": "maria_ivanova", "name": "Мария Иванова", "total": 65, "completed": 22, "budget": 3.9, "programs": {"MN": 38, "Школа Менеджмента": 27}},
+                {"id": "alexey_smirnov", "name": "Алексей Смирнов", "total": 52, "completed": 18, "budget": 3.1, "programs": {"MN": 30, "Школа Менеджмента": 22}},
+                {"id": "elena_kozlova", "name": "Елена Козлова", "total": 48, "completed": 15, "budget": 2.7, "programs": {"MN": 28, "Школа Менеджмента": 20}}
+            ],
+            "churnReasons": [
+                {"reason": "Не актуально", "pct": 35.2},
+                {"reason": "Отложили на потом", "pct": 28.5},
+                {"reason": "Дорого", "pct": 18.3},
+                {"reason": "Выбрали конкурентов", "pct": 12.0},
+                {"reason": "Другое", "pct": 6.0}
+            ],
+            "programSplit": {"MN": 58, "Школа Менеджмента": 42},
+            "lastUpdated": "2025-06-21 10:30:00"
+        };
+
+        // ============================================
+        // STATE & FILTERS
+        // ============================================
+        let state = {
+            period: 'all',
+            manager: 'all',
+            program: 'all',
+            sortColumn: 'completed',
+            sortDirection: 'desc'
+        };
+
+        let filteredData = null;
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilters();
+            applyFilters();
+            updateLastUpdated();
+            initTableSorting();
+        });
+
+        function initFilters() {
+            // Populate manager dropdown
+            const managerSelect = document.getElementById('managerFilter');
+            RAW.managers.forEach(mgr => {
+                const option = document.createElement('option');
+                option.value = mgr.id;
+                option.textContent = mgr.name;
+                managerSelect.appendChild(option);
+            });
+
+            // Event listeners
+            document.getElementById('periodFilter').addEventListener('change', (e) => {
+                state.period = e.target.value;
+                applyFilters();
+            });
+
+            document.getElementById('managerFilter').addEventListener('change', (e) => {
+                state.manager = e.target.value;
+                applyFilters();
+            });
+
+            document.getElementById('programFilter').addEventListener('change', (e) => {
+                state.program = e.target.value;
+                applyFilters();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', resetFilters);
+        }
+
+        function resetFilters() {
+            state = {
+                period: 'all',
+                manager: 'all',
+                program: 'all',
+                sortColumn: 'completed',
+                sortDirection: 'desc'
+            };
+
+            document.getElementById('periodFilter').value = 'all';
+            document.getElementById('managerFilter').value = 'all';
+            document.getElementById('programFilter').value = 'all';
+
+            applyFilters();
+        }
+
+        function updateActivePills() {
+            const container = document.getElementById('activeFilters');
+            container.innerHTML = '';
+
+            const pills = [];
+
+            if (state.period !== 'all') {
+                const periodLabels = {
+                    '6m': 'Последние 6 месяцев',
+                    '3m': 'Последние 3 месяца',
+                    '1m': 'Последний месяц'
+                };
+                pills.push({ label: `Период: ${periodLabels[state.period]}`, key: 'period' });
+            }
+
+            if (state.manager !== 'all') {
+                const mgr = RAW.managers.find(m => m.id === state.manager);
+                if (mgr) {
+                    pills.push({ label: `Менеджер: ${mgr.name}`, key: 'manager' });
+                }
+            }
+
+            if (state.program !== 'all') {
+                const programLabels = { 'MN': 'MN', 'school': 'Школа Менеджмента' };
+                pills.push({ label: `Программа: ${programLabels[state.program]}`, key: 'program' });
+            }
+
+            pills.forEach(pill => {
+                const div = document.createElement('div');
+                div.className = 'pill';
+                div.innerHTML = `
+                    ${pill.label}
+                    <span class="pill-remove" onclick="removeFilter('${pill.key}')">✕</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removeFilter(key) {
+            state[key] = 'all';
+            const selectId = key + 'Filter';
+            document.getElementById(selectId).value = 'all';
+            applyFilters();
+        }
+
+        // ============================================
+        // FILTER LOGIC
+        // ============================================
+        function applyFilters() {
+            // Filter monthly data based on period
+            let monthlyData = [...RAW.monthly];
+
+            if (state.period === '6m') {
+                monthlyData = monthlyData.slice(-6);
+            } else if (state.period === '3m') {
+                monthlyData = monthlyData.slice(-3);
+            } else if (state.period === '1m') {
+                monthlyData = monthlyData.slice(-1);
+            }
+
+            // Filter managers based on program
+            let managersData = [...RAW.managers];
+
+            if (state.program !== 'all') {
+                managersData = managersData.filter(mgr => {
+                    if (state.program === 'MN') {
+                        return mgr.programs['MN'] > 0;
+                    } else if (state.program === 'school') {
+                        return mgr.programs['Школа Менеджмента'] > 0;
+                    }
+                    return true;
+                });
+            }
+
+            if (state.manager !== 'all') {
+                managersData = managersData.filter(mgr => mgr.id === state.manager);
+            }
+
+            // Calculate aggregated metrics
+            const totalLeads = monthlyData.reduce((sum, m) => sum + m.total, 0);
+            const completedDeals = monthlyData.reduce((sum, m) => sum + m.completed, 0);
+            const churnedLeads = monthlyData.reduce((sum, m) => sum + m.churned, 0);
+            const totalBudget = monthlyData.reduce((sum, m) => sum + m.budget, 0);
+
+            const conversionRate = totalLeads > 0 ? ((completedDeals / totalLeads) * 100).toFixed(1) : 0;
+            const churnRate = totalLeads > 0 ? ((churnedLeads / totalLeads) * 100).toFixed(1) : 0;
+            const avgCheck = completedDeals > 0 ? ((totalBudget / completedDeals) * 1000).toFixed(1) : 0;
+
+            // Update filtered data
+            filteredData = {
+                monthly: monthlyData,
+                managers: managersData,
+                churnReasons: state.manager === 'all' && state.program === 'all' ? RAW.churnReasons : [],
+                programSplit: state.program === 'all' ? RAW.programSplit : {},
+                metrics: {
+                    totalLeads,
+                    completedDeals,
+                    churnedLeads,
+                    totalBudget,
+                    conversionRate,
+                    churnRate,
+                    avgCheck,
+                    activeManagers: managersData.length
+                }
+            };
+
+            // Update UI
+            updateActivePills();
+            updateMetrics();
+            updateCharts();
+            updateTable();
+        }
+
+        // ============================================
+        // METRICS UPDATE
+        // ============================================
+        function updateMetrics() {
+            if (!filteredData) return;
+
+            const m = filteredData.metrics;
+
+            document.getElementById('totalLeads').textContent = m.totalLeads.toLocaleString();
+            document.getElementById('completedDeals').textContent = m.completedDeals.toLocaleString();
+            document.getElementById('conversionRate').textContent = `Конверсия: ${m.conversionRate}%`;
+            document.getElementById('churnedLeads').textContent = m.churnedLeads.toLocaleString();
+            document.getElementById('churnRate').textContent = `Процент: ${m.churnRate}%`;
+            document.getElementById('totalBudget').textContent = m.totalBudget.toFixed(2);
+            document.getElementById('avgCheck').textContent = m.avgCheck;
+            document.getElementById('activeManagers').textContent = m.activeManagers;
+        }
+
+        // ============================================
+        // CHARTS (Simple CSS-based bars)
+        // ============================================
+        function updateCharts() {
+            if (!filteredData) return;
+
+            renderLeadsChart();
+            renderConversionChart();
+            renderChurnChart();
+            renderProgramChart();
+        }
+
+        function renderLeadsChart() {
+            const container = document.getElementById('leadsChart');
+            const data = filteredData.monthly;
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="no-data">Нет данных для этого фильтра</div>';
+                return;
+            }
+
+            const maxValue = Math.max(...data.map(d => d.total));
+            const bars = data.map(d => {
+                const height = (d.total / maxValue) * 100;
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                        <div style="height: ${height}%; width: 80%; background: var(--accent-blue); 
+                            border-radius: 4px 4px 0 0; min-height: 20px;"></div>
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; 
+                            transform: rotate(-45deg); white-space: nowrap;">${d.month.split(' ')[0]}</div>
+                        <div style="font-size: 11px; color: var(--text-primary); margin-top: 2px;">${d.total}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div style="display: flex; align-items: flex-end; height: 200px; gap: 8px; padding-top: 20px;">${bars}</div>`;
+        }
+
+        function renderConversionChart() {
+            const container = document.getElementById('conversionChart');
+            const data = filteredData.monthly;
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="no-data">Нет данных для этого фильтра</div>';
+                return;
+            }
+
+            const conversions = data.map(d => ({
+                month: d.month,
+                rate: d.total > 0 ? ((d.completed / d.total) * 100) : 0
+            }));
+
+            const maxRate = Math.max(...conversions.map(c => c.rate), 1);
+            const bars = conversions.map(c => {
+                const height = (c.rate / maxRate) * 100;
+                const color = c.rate >= 30 ? 'var(--accent-green)' : c.rate >= 20 ? 'var(--accent-gold)' : 'var(--accent-red)';
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+                        <div style="height: ${height}%; width: 80%; background: ${color}; 
+                            border-radius: 4px 4px 0 0; min-height: 20px;"></div>
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 4px; 
+                            transform: rotate(-45deg); white-space: nowrap;">${c.month.split(' ')[0]}</div>
+                        <div style="font-size: 11px; color: var(--text-primary); margin-top: 2px;">${c.rate.toFixed(0)}%</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div style="display: flex; align-items: flex-end; height: 200px; gap: 8px; padding-top: 20px;">${bars}</div>`;
+        }
+
+        function renderChurnChart() {
+            const container = document.getElementById('churnChart');
+            const data = filteredData.churnReasons;
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="no-data">Нет данных для этого фильтра</div>';
+                return;
+            }
+
+            const colors = ['var(--accent-red)', 'var(--accent-gold)', 'var(--accent-blue)', 'var(--text-secondary)', 'var(--bg-hover)'];
+            const bars = data.map((d, i) => {
+                const color = colors[i % colors.length];
+                return `
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <div style="width: ${d.pct}%; background: ${color}; height: 24px; 
+                            border-radius: 4px; min-width: 30px;"></div>
+                        <span style="margin-left: 12px; font-size: 13px; color: var(--text-secondary); 
+                            flex: 1;">${d.reason}</span>
+                        <span style="font-size: 13px; color: var(--text-primary); font-weight: 600;">${d.pct}%</span>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div style="padding: 10px 0;">${bars}</div>`;
+        }
+
+        function renderProgramChart() {
+            const container = document.getElementById('programChart');
+            const data = filteredData.programSplit;
+
+            if (!data || Object.keys(data).length === 0) {
+                container.innerHTML = '<div class="no-data">Нет данных для этого фильтра</div>';
+                return;
+            }
+
+            const entries = Object.entries(data);
+            const total = entries.reduce((sum, [, v]) => sum + v, 0);
+
+            let cumulative = 0;
+            const segments = entries.map(([name, value], i) => {
+                const percentage = (value / total) * 100;
+                const start = cumulative;
+                cumulative += percentage;
+                const color = i === 0 ? 'var(--accent-blue)' : 'var(--accent-gold)';
+
+                return `
+                    <div style="display: flex; align-items: center; margin-bottom: 12px;">
+                        <div style="width: ${percentage}%; background: ${color}; height: 24px; 
+                            border-radius: 4px; min-width: 30px;"></div>
+                        <span style="margin-left: 12px; font-size: 13px; color: var(--text-secondary); 
+                            flex: 1;">${name}</span>
+                        <span style="font-size: 13px; color: var(--text-primary); font-weight: 600;">${value}%</span>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div style="padding: 10px 0;">${segments}</div>`;
+        }
+
+        // ============================================
+        // TABLE
+        // ============================================
+        function updateTable() {
+            if (!filteredData) return;
+
+            const tbody = document.getElementById('managersTableBody');
+            let data = [...filteredData.managers];
+
+            // Sort
+            data.sort((a, b) => {
+                let valA, valB;
+
+                switch (state.sortColumn) {
+                    case 'name':
+                        valA = a.name.toLowerCase();
+                        valB = b.name.toLowerCase();
+                        break;
+                    case 'total':
+                        valA = a.total;
+                        valB = b.total;
+                        break;
+                    case 'completed':
+                        valA = a.completed;
+                        valB = b.completed;
+                        break;
+                    case 'conversion':
+                        valA = a.total > 0 ? (a.completed / a.total) : 0;
+                        valB = b.total > 0 ? (b.completed / b.total) : 0;
+                        break;
+                    case 'budget':
+                        valA = a.budget;
+                        valB = b.budget;
+                        break;
+                    default:
+                        valA = a.completed;
+                        valB = b.completed;
+                }
+
+                if (valA < valB) return state.sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return state.sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            const rows = data.map(mgr => {
+                const conversion = mgr.total > 0 ? ((mgr.completed / mgr.total) * 100).toFixed(1) : 0;
+                const programs = Object.entries(mgr.programs)
+                    .map(([name, count]) => `<span class="program-tag">${name}: ${count}</span>`)
+                    .join('');
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="manager-name">${mgr.name}</div>
+                            <div style="margin-top: 4px;">${programs}</div>
+                        </td>
+                        <td>${mgr.total}</td>
+                        <td>${mgr.completed}</td>
+                        <td>${conversion}%</td>
+                        <td>${mgr.budget.toFixed(1)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.innerHTML = rows || '<tr><td colspan="5" class="no-data">Нет данных</td></tr>';
+            updateSortIndicators();
+        }
+
+        function initTableSorting() {
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.dataset.sort;
+
+                    if (state.sortColumn === column) {
+                        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        state.sortColumn = column;
+                        state.sortDirection = 'desc';
+                    }
+
+                    updateTable();
+                });
+            });
+        }
+
+        function updateSortIndicators() {
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+                if (th.dataset.sort === state.sortColumn) {
+                    th.classList.add(state.sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
+        }
+
+        // ============================================
+        // UTILS
+        // ============================================
+        function updateLastUpdated() {
+            document.getElementById('lastUpdated').textContent = 
+                `Обновлено: ${RAW.lastUpdated}`;
+        }
+    </script>
+</body>
+</html>
