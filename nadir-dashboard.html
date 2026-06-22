@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд задач Надыра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://cataas.com/cat/says/Dashboard?size=200');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: -1;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(2deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filters {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .task-id {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .task-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-todo {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .status-in-progress {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .status-done {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .status-on-hold {
+            background: #fab1a0;
+            color: #d63031;
+        }
+
+        .task-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 10px;
+        }
+
+        .task-description {
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .task-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detail-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .detail-label {
+            font-size: 0.8em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #2d3436;
+        }
+
+        .priority-high {
+            color: #d63031;
+        }
+
+        .priority-medium {
+            color: #e17055;
+        }
+
+        .priority-low {
+            color: #00b894;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f2f6;
+            color: #2d3436;
+        }
+
+        .btn-secondary:hover {
+            background: #dfe4ea;
+        }
+
+        .task-links {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .task-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .task-links a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #d63031;
+        }
+
+        @media (max-width: 768px) {
+            .tasks-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .task-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        .cat-meme {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: url('https://cataas.com/cat/cute?size=80') no-repeat center;
+            background-size: contain;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 100;
+        }
+
+        .cat-meme:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Дашборд задач Надыра</h1>
+            <p>Интерактивная панель управления задачами с аналитикой и отслеживанием</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTasks">10</div>
+                <div class="stat-label">Всего задач</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todoTasks">10</div>
+                <div class="stat-label">В ожидании</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="highPriority">3</div>
+                <div class="stat-label">Высокий приоритет</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalBudget">~6.7M</div>
+                <div class="stat-label">Общий бюджет (сум)</div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="statusFilter">Статус:</label>
+                <select id="statusFilter">
+                    <option value="all">Все</option>
+                    <option value="todo">To Do</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="done">Done</option>
+                    <option value="on-hold">On Hold</option>
+                </select>
+
+                <label for="priorityFilter">Приоритет:</label>
+                <select id="priorityFilter">
+                    <option value="all">Все</option>
+                    <option value="high">Высокий</option>
+                    <option value="medium">Средний</option>
+                    <option value="low">Низкий</option>
+                </select>
+
+                <label for="searchFilter">Поиск:</label>
+                <input type="text" id="searchFilter" placeholder="Название задачи...">
+            </div>
+        </div>
+
+        <div class="tasks-grid" id="tasksGrid">
+            <!-- Задачи будут добавлены через JavaScript -->
+        </div>
+    </div>
+
+    <div class="cat-meme" title="Мяу!"></div>
+
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const tasks = [
+            {
+                id: 1,
+                title: "Тех. Аудитория (Охлаждение)",
+                description: "Найти альтернативу кондиционеру, проверить ноутбуки. Решить проблему охлаждения в техническом помещении.",
+                status: "todo",
+                priority: "high",
+                budget: "~2,000,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Исследовать варианты охлаждения (вентиляторы, мобильный кондиционер)",
+                    "Найти поставщиков оборудования",
+                    "Сравнить цены и характеристики",
+                    "Заказать и установить оборудование",
+                    "Проверить состояние ноутбуков"
+                ],
+                links: [
+                    { text: "Кондиционеры BTU", url: "https://global.uz/ru/catalog/konditsionery-bt/" },
+                    { text: "Вентиляторы", url: "https://glotr.uz/search?q=ventilyator" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 2,
+                title: "Обновить доски",
+                description: "Вымыть существующие доски, найти и заказать новые модели Deli: 7884, 7820, EV163",
+                status: "todo",
+                priority: "high",
+                budget: "~500,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Тщательно вымыть существующие доски",
+                    "Найти точные модели на Glotr.uz или Leroy Merlin",
+                    "Сравнить цены и наличие",
+                    "Сделать заказ выбранных моделей"
+                ],
+                links: [
+                    { text: "Доски Deli на Glotr", url: "https://glotr.uz/search?q=Deli+доска" },
+                    { text: "Офисные доски Leroy Merlin", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/mebel-dlya-ofisa/doski-dlya-pisma/" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 3,
+                title: "ТВ вместо проектора",
+                description: "Продать старый проектор и купить новый телевизор стоимостью от $2000",
+                status: "todo",
+                priority: "high",
+                budget: "$2000+",
+                responsible: "Надыр",
+                steps: [
+                    "Оценить текущее состояние проектора",
+                    "Найти покупателя на проектор (Avito, OLX, Telegram)",
+                    "Подобрать ТВ стоимостью от $2000",
+                    "Сравнить предложения в магазинах",
+                    "Оформить покупку"
+                ],
+                links: [
+                    { text: "Samsung QLED 75\"", url: "https://techno.uz/ru/samsung/qe75q60aau" },
+                    { text: "Проекторы на OLX", url: "https://www.olx.uz/obyavleniya/proektor-optoma-s08-2000-lm-3d-1080p-idf0v.html" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 4,
+                title: "Баннер Evolution",
+                description: "Решить судьбу баннера Evolution: снять или заменить",
+                status: "todo",
+                priority: "medium",
+                budget: "~100,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Уточнить требования арендодателя",
+                    "Оценить возможность снятия",
+                    "При необходимости - заказать новый баннер",
+                    "Согласовать установку/снятие"
+                ],
+                links: [
+                    { text: "Печать баннеров Print.uz", url: "https://print.uz" },
+                    { text: "Рекламные услуги Reklam.uz", url: "https://reklam.uz" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 5,
+                title: "Вешалка",
+                description: "Убрать старые вешалки, подумать об альтернативных решениях",
+                status: "todo",
+                priority: "low",
+                budget: "~50,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Физически убрать старые вешалки",
+                    "Исследовать альтернативные варианты",
+                    "Рассмотреть крючки на стену или штангу в шкафу",
+                    "Закупить необходимые материалы"
+                ],
+                links: [
+                    { text: "Гардеробные системы", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/garderobnye-sistemy-i-shkafy/garderobnye-sistemy/" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 6,
+                title: "AUX кабель",
+                description: "Купить кабель AUX (3.5 мм jack) для подключения аудиоустройств",
+                status: "todo",
+                priority: "low",
+                budget: "~30,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Найти кабель 3.5 мм нужной длины",
+                    "Сравнить цены и качество",
+                    "Заказать или купить в магазине"
+                ],
+                links: [
+                    { text: "AUX кабель на Glotr", url: "https://glotr.uz/product/aux-kabel-3-5mm-1-5m-50812" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 7,
+                title: "Кантин (столы и стулья)",
+                description: "Найти и согласовать покупку новых столов и стульев для кантинной зоны",
+                status: "todo",
+                priority: "medium",
+                budget: "~2,000,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Определить необходимое количество мебели",
+                    "Выбрать стиль и дизайн",
+                    "Найти поставщиков мебели",
+                    "Сравнить цены и условия",
+                    "Согласовать покупку и заказать"
+                ],
+                links: [
+                    { text: "Офисные столы", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/mebel-dlya-ofisa/stoly-dlya-ofisa/" },
+                    { text: "Мебель Dekor.uz", url: "https://dekor.uz" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 8,
+                title: "Тарелки для кофе-брейк",
+                description: "Добавить одноразовые тарелки в список регулярных закупок",
+                status: "todo",
+                priority: "low",
+                budget: "~50,000 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Найти надежного поставщика",
+                    "Определить необходимый объем закупки",
+                    "Добавить в список регулярных закупок",
+                    "Контролировать наличие на складе"
+                ],
+                links: [
+                    { text: "Одноразовая посуда Print.uz", url: "https://print.uz" }
+                ],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 9,
+                title: "Админка (автоответчик)",
+                description: "Настроить автоответчик в админке и предоставить доступ координаторам",
+                status: "todo",
+                priority: "medium",
+                budget: "0 сум",
+                responsible: "Надыр",
+                steps: [
+                    "Настроить автоответчик в используемой платформе",
+                    "Создать учетные записи для координаторов",
+                    "Выдать логины и пароли",
+                    "Провести инструктаж по использованию"
+                ],
+                links: [],
+                dateCreated: "22.06.2026"
+            },
+            {
+                id: 10,
+                title: "Схема проезда",
+                description: "Совместно с отделом маркетинга снять видео или создать инструкцию со схемой проезда",
+                status: "todo",
+                priority: "medium",
+                budget: "0 сум (внутренние ресурсы)",
+                responsible: "Надыр + Маркетинг",
+                steps: [
+                    "Совместно с маркетингом обсудить формат",
+                    "Подготовить сценарий/план съемки",
+                    "Снять видео или создать графическую инструкцию",
+                    "Загрузить и опубликовать материал"
+                ],
+                links: [],
+                dateCreated: "22.06.2026"
+            }
+        ];
+
+        function getStatusClass(status) {
+            const statusMap = {
+                'todo': 'status-todo',
+                'in-progress': 'status-in-progress',
+                'done': 'status-done',
+                'on-hold': 'status-on-hold'
+            };
+            return statusMap[status] || 'status-todo';
+        }
+
+        function getPriorityClass(priority) {
+            const priorityMap = {
+                'high': 'priority-high',
+                'medium': 'priority-medium',
+                'low': 'priority-low'
+            };
+            return priorityMap[priority] || 'priority-medium';
+        }
+
+        function getStatusText(status) {
+            const statusTextMap = {
+                'todo': 'To Do',
+                'in-progress': 'In Progress',
+                'done': 'Done',
+                'on-hold': 'On Hold'
+            };
+            return statusTextMap[status] || 'To Do';
+        }
+
+        function renderTasks(filteredTasks = tasks) {
+            const tasksGrid = document.getElementById('tasksGrid');
+            tasksGrid.innerHTML = '';
+
+            filteredTasks.forEach(task => {
+                const taskCard = document.createElement('div');
+                taskCard.className = 'task-card';
+                taskCard.onclick = () => openModal(task);
+
+                let linksHTML = '';
+                if (task.links && task.links.length > 0) {
+                    linksHTML = '<div class="task-links"><strong>Полезные ссылки:</strong>';
+                    task.links.forEach(link => {
+                        linksHTML += `<a href="${link.url}" target="_blank" onclick="event.stopPropagation()">→ ${link.text}</a>`;
+                    });
+                    linksHTML += '</div>';
+                }
+
+                let stepsHTML = '';
+                if (task.steps && task.steps.length > 0) {
+                    stepsHTML = '<div style="margin-top: 10px;"><strong>План действий:</strong><ul style="margin-left: 20px; margin-top: 5px; color: #636e72;">';
+                    task.steps.forEach((step, index) => {
+                        stepsHTML += `<li>${step}</li>`;
+                    });
+                    stepsHTML += '</ul></div>';
+                }
+
+                taskCard.innerHTML = `
+                    <div class="task-header">
+                        <span class="task-id">#${task.id}</span>
+                        <span class="task-status ${getStatusClass(task.status)}">${getStatusText(task.status)}</span>
+                    </div>
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-description">${task.description}</div>
+                    <div class="task-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Приоритет</div>
+                            <div class="detail-value ${getPriorityClass(task.priority)}">${task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Бюджет</div>
+                            <div class="detail-value">${task.budget}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Ответственный</div>
+                            <div class="detail-value">${task.responsible}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Дата создания</div>
+                            <div class="detail-value">${task.dateCreated}</div>
+                        </div>
+                    </div>
+                    ${stepsHTML}
+                    ${linksHTML}
+                    <div class="task-actions">
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('${task.id}')">Подробнее</button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); changeStatus('${task.id}')">Изменить статус</button>
+                    </div>
+                `;
+
+                tasksGrid.appendChild(taskCard);
+            });
+        }
+
+        function openModal(task) {
+            const modal = document.getElementById('taskModal');
+            const modalContent = document.getElementById('modalContent');
+
+            let linksHTML = '';
+            if (task.links && task.links.length > 0) {
+                linksHTML = '<div style="margin-top: 20px;"><strong>Полезные ссылки:</strong><br>';
+                task.links.forEach(link => {
+                    linksHTML += `<a href="${link.url}" target="_blank" style="color: #667eea; display: block; margin: 5px 0;">→ ${link.text}</a>`;
+                });
+                linksHTML += '</div>';
+            }
+
+            let stepsHTML = '';
+            if (task.steps && task.steps.length > 0) {
+                stepsHTML = '<div style="margin-top: 20px;"><strong>План действий:</strong><ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">';
+                task.steps.forEach(step => {
+                    stepsHTML += `<li>${step}</li>`;
+                });
+                stepsHTML += '</ol></div>';
+            }
+
+            modalContent.innerHTML = `
+                <h2 style="color: #2d3436; margin-bottom: 15px;">#${task.id} ${task.title}</h2>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <p style="color: #636e72; line-height: 1.6;">${task.description}</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div><strong>Статус:</strong> <span class="task-status ${getStatusClass(task.status)}">${getStatusText(task.status)}</span></div>
+                    <div><strong>Приоритет:</strong> <span class="${getPriorityClass(task.priority)}">${task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}</span></div>
+                    <div><strong>Бюджет:</strong> ${task.budget}</div>
+                    <div><strong>Ответственный:</strong> ${task.responsible}</div>
+                    <div><strong>Дата создания:</strong> ${task.dateCreated}</div>
+                </div>
+                ${stepsHTML}
+                ${linksHTML}
+                <div style="margin-top: 25px; display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="changeStatus('${task.id}')">Изменить статус</button>
+                    <button class="btn btn-secondary" onclick="copyTaskInfo('${task.id}')">Копировать информацию</button>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').style.display = 'none';
+        }
+
+        function changeStatus(taskId) {
+            const task = tasks.find(t => t.id == taskId);
+            if (task) {
+                const statuses = ['todo', 'in-progress', 'done', 'on-hold'];
+                const currentIndex = statuses.indexOf(task.status);
+                const nextIndex = (currentIndex + 1) % statuses.length;
+                task.status = statuses[nextIndex];
+                renderTasks(filterTasks());
+                updateStats();
+                alert(`Статус задачи #${taskId} изменен на: ${getStatusText(task.status)}`);
+            }
+        }
+
+        function copyTaskInfo(taskId) {
+            const task = tasks.find(t => t.id == taskId);
+            if (task) {
+                const info = `Задача #${task.id}: ${task.title}\nСтатус: ${getStatusText(task.status)}\nПриоритет: ${task.priority}\nБюджет: ${task.budget}\nОтветственный: ${task.responsible}`;
+                navigator.clipboard.writeText(info).then(() => {
+                    alert('Информация скопирована в буфер обмена!');
+                });
+            }
+        }
+
+        function filterTasks() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const priorityFilter = document.getElementById('priorityFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+            return tasks.filter(task => {
+                const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+                const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+                const matchesSearch = searchFilter === '' || 
+                    task.title.toLowerCase().includes(searchFilter) || 
+                    task.description.toLowerCase().includes(searchFilter);
+
+                return matchesStatus && matchesPriority && matchesSearch;
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalTasks').textContent = tasks.length;
+            document.getElementById('todoTasks').textContent = tasks.filter(t => t.status === 'todo').length;
+            document.getElementById('highPriority').textContent = tasks.filter(t => t.priority === 'high').length;
+        }
+
+        // Event listeners for filters
+        document.getElementById('statusFilter').addEventListener('change', () => renderTasks(filterTasks()));
+        document.getElementById('priorityFilter').addEventListener('change', () => renderTasks(filterTasks()));
+        document.getElementById('searchFilter').addEventListener('input', () => renderTasks(filterTasks()));
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('taskModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize
+        renderTasks();
+        updateStats();
+    </script>
+</body>
+</html>
