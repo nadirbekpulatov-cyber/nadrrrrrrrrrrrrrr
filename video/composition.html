@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Задачи и скиллы Надыра — видео</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@500;600;700&display=swap">
+<style>
+/* Кадр 1920×1080. Те же токены, что у дашборда (тёмная тема), чтобы видео и продукт выглядели одной системой.
+   Сигнатура: «рельс» глав внизу кадра — тонкая линия прогресса с отметками разделов, она же навигация зрителя. */
+:root {
+  --bg: #0B1316; --panel: #132026; --panel-2: #1A2B31; --line: #26383F; --line-strong: #3B5058;
+  --fg: #E6EEF1; --fg-2: #A9BAC1; --fg-3: #7F949C;
+  --accent: #56BCC7; --accent-soft: #12343A; --chart: #14A3B4;
+  --crit: #F2766B; --crit-soft: #3A1D1B; --warn: #E5A945; --warn-soft: #33270F; --ok: #66C892; --ok-soft: #15301F;
+  --display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --body: "Golos Text", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #000; }
+#stage {
+  position: relative; width: 1920px; height: 1080px; overflow: hidden;
+  background: var(--bg); color: var(--fg); font-family: var(--body); -webkit-font-smoothing: antialiased;
+}
+.abs { position: absolute; }
+.scene { position: absolute; inset: 0; will-change: opacity; }
+.mono { font-family: var(--mono); }
+.line { display: block; overflow: hidden; padding-bottom: .08em; }
+.line > span { display: inline-block; will-change: transform; }
+
+/* Фон: сетка «миллиметровки», два мягких свечения, зерно и виньетка */
+#grid {
+  position: absolute; inset: -64px;
+  background-image:
+    linear-gradient(to right, rgba(230, 238, 241, .035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(230, 238, 241, .035) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+.glow { position: absolute; width: 1400px; height: 1400px; border-radius: 50%; filter: blur(40px); }
+#glowA { background: radial-gradient(circle, rgba(20, 163, 180, .22), rgba(20, 163, 180, 0) 60%); }
+#glowB { background: radial-gradient(circle, rgba(86, 188, 199, .12), rgba(86, 188, 199, 0) 60%); }
+#grain { position: absolute; inset: 0; opacity: .07; mix-blend-mode: overlay; pointer-events: none; }
+#vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%); }
+
+/* Общие элементы сцен */
+.eyebrow { font-family: var(--mono); font-size: 24px; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-3); }
+.h-display { font-family: var(--display); font-weight: 600; letter-spacing: -.015em; line-height: 1.02; }
+.lede { font-size: 34px; line-height: 1.4; color: var(--fg-2); }
+.rule { height: 3px; background: var(--chart); border-radius: 2px; }
+.frame {
+  position: absolute; overflow: hidden; border-radius: 18px; border: 1px solid var(--line-strong);
+  background: var(--panel); box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+}
+.frame img { position: absolute; left: 0; top: 0; width: 100%; display: block; will-change: transform; }
+.chip {
+  display: inline-flex; align-items: center; gap: 10px; padding: 8px 18px; border-radius: 999px;
+  font-size: 24px; font-weight: 600; background: var(--panel-2); color: var(--fg-2); white-space: nowrap;
+}
+.chip::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.c-crit { background: var(--crit-soft); color: var(--crit); }
+.c-warn { background: var(--warn-soft); color: var(--warn); }
+.c-open { background: var(--accent-soft); color: var(--accent); }
+.c-ok { background: var(--ok-soft); color: var(--ok); }
+.notes { position: absolute; display: grid; gap: 30px; }
+.note { display: grid; grid-template-columns: 14px 1fr; gap: 18px; align-items: start; font-size: 30px; line-height: 1.35; }
+.note::before { content: ""; width: 12px; height: 12px; margin-top: 13px; border-radius: 50%; background: var(--fg-3); }
+.note.bad::before { background: var(--crit); }
+.note.good::before { background: var(--chart); }
+
+/* Глава */
+.chapter-num { font-family: var(--mono); font-size: 40px; color: var(--accent); letter-spacing: .1em; }
+.chapter-title { font-size: 150px; }
+
+/* Сцена: бюджет */
+.big-num { font-family: var(--body); font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+.strike { position: absolute; left: -2%; top: 52%; height: 10px; background: var(--crit); border-radius: 5px; }
+
+/* График */
+.bar-row { position: absolute; left: 0; display: grid; grid-template-columns: 300px 1fr; gap: 36px; align-items: center; width: 1580px; height: 64px; }
+.bar-label { font-size: 30px; color: var(--fg-2); text-align: right; }
+.bar-track { position: relative; height: 34px; border-left: 2px solid var(--line-strong); display: flex; align-items: center; gap: 18px; }
+.bar { height: 34px; background: var(--chart); border-radius: 0 6px 6px 0; min-width: 4px; }
+.bar-val { font-family: var(--mono); font-size: 26px; color: var(--fg); white-space: nowrap; }
+
+/* Приоритеты */
+.pcol { position: absolute; top: 300px; width: 520px; padding: 36px 40px; border: 1px solid var(--line); border-radius: 22px; background: var(--panel); }
+.pcol h3 { margin: 0; display: flex; align-items: center; gap: 16px; font-size: 34px; font-weight: 600; }
+.pcol .cnt { font-size: 120px; font-weight: 600; line-height: 1; margin: 22px 0 18px; }
+.pcol ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.pcol li { font-size: 28px; color: var(--fg-2); }
+.prio { width: 30px; height: 30px; }
+.prio rect { fill: currentColor; }
+.prio rect.off { fill: var(--line-strong); }
+
+/* Карточка задачи */
+.card { position: absolute; left: 120px; top: 170px; width: 820px; padding: 44px 48px; border-radius: 24px; border: 1px solid var(--line-strong); background: var(--panel); box-shadow: 0 30px 80px rgba(0, 0, 0, .45); }
+.card-eyebrow { display: flex; gap: 18px; align-items: center; font-size: 24px; color: var(--fg-3); }
+.card h3 { margin: 10px 0 26px; font-size: 46px; font-weight: 600; line-height: 1.2; }
+.pills { position: relative; height: 46px; margin-bottom: 30px; }
+.pills .chip { position: absolute; left: 0; top: 0; }
+.steps { display: grid; gap: 16px; }
+.step { display: grid; grid-template-columns: 36px 34px 1fr; gap: 14px; align-items: center; font-size: 27px; }
+.box { width: 32px; height: 32px; border-radius: 8px; border: 2px solid var(--line-strong); position: relative; }
+.box svg { position: absolute; inset: 2px; width: 24px; height: 24px; opacity: 0; }
+.step.on .box { background: var(--accent); border-color: var(--accent); }
+.step.on .box svg { opacity: 1; }
+.step.on .txt { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.step .idx { font-family: var(--mono); font-size: 22px; color: var(--fg-3); }
+.meter { height: 10px; border-radius: 5px; background: var(--panel-2); overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--chart); border-radius: 5px; }
+
+/* Телефон */
+.phone { position: absolute; width: 380px; height: 780px; border-radius: 56px; border: 10px solid #26363C; background: #000; overflow: hidden; box-shadow: 0 30px 80px rgba(0, 0, 0, .5); }
+.phone img { position: absolute; left: 0; top: 0; width: 100%; }
+
+/* Скиллы */
+.repo-row { position: absolute; left: 0; width: 820px; display: grid; grid-template-columns: 360px 1fr 70px; gap: 24px; align-items: center; height: 56px; }
+.repo-row .name { font-family: var(--mono); font-size: 26px; }
+.repo-row .val { font-family: var(--mono); font-size: 26px; text-align: right; color: var(--fg-2); }
+.repo-row .track { height: 14px; border-radius: 7px; background: var(--panel-2); overflow: hidden; }
+.repo-row .track i { display: block; height: 100%; width: 0; background: var(--chart); border-radius: 7px; }
+.tile { position: absolute; width: 390px; height: 300px; padding: 30px 32px; border: 1px solid var(--line); border-radius: 22px; background: var(--panel); display: grid; align-content: start; gap: 8px; }
+.tile .t-name { font-size: 28px; font-weight: 600; }
+.tile .t-cnt { font-size: 84px; font-weight: 600; line-height: 1.05; }
+.tile .t-list { font-family: var(--mono); font-size: 20px; color: var(--fg-3); line-height: 1.55; }
+.tile.hl { border-color: var(--chart); box-shadow: 0 0 0 1px var(--chart), 0 20px 60px rgba(20, 163, 180, .18); }
+
+/* Что дальше */
+.todo-row { position: absolute; left: 120px; width: 1680px; display: grid; grid-template-columns: 220px 1fr; gap: 36px; align-items: start; }
+.todo-row .chip { justify-self: start; margin-top: 4px; }
+.todo-row b { display: block; font-size: 38px; font-weight: 600; line-height: 1.25; }
+.todo-row p { margin: 8px 0 0; font-size: 26px; color: var(--fg-2); line-height: 1.4; }
+
+/* Рельс глав */
+#rail { position: absolute; left: 120px; right: 120px; bottom: 44px; height: 40px; }
+#rail .track { position: absolute; left: 0; right: 0; top: 28px; height: 2px; background: var(--line); }
+#rail .fill { position: absolute; left: 0; top: 28px; height: 2px; background: var(--chart); width: 0; }
+#rail .tick { position: absolute; top: 0; font-family: var(--mono); font-size: 18px; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); transform: translateX(0); white-space: nowrap; }
+#rail .tick::after { content: ""; position: absolute; left: 0; top: 24px; width: 2px; height: 10px; background: var(--line-strong); }
+#rail .tick.cur { color: var(--fg); }
+#rail .tick.cur::after { background: var(--chart); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="grid"></div>
+  <div id="glowA" class="glow"></div>
+  <div id="glowB" class="glow"></div>
+
+  <!-- 1. Вступление -->
+  <section class="scene" id="s-intro">
+    <div class="abs eyebrow" id="i-eyebrow" style="left:120px;top:250px">08.10.2026 · итоги</div>
+    <div class="abs h-display" style="left:120px;top:310px;font-size:150px">
+      <span class="line"><span class="i-l">Задачи</span></span>
+      <span class="line"><span class="i-l">и скиллы</span></span>
+      <span class="line"><span class="i-l" style="color:var(--accent)">Надыра</span></span>
+    </div>
+    <div class="abs rule" id="i-rule" style="left:120px;top:830px;width:420px"></div>
+    <div class="abs lede" id="i-lede" style="left:120px;top:870px;width:1300px">Что изменилось в дашборде, какие скиллы уже есть и что делать дальше.</div>
+  </section>
+
+  <!-- 2. Глава 1 -->
+  <section class="scene" id="s-ch1">
+    <div class="abs chapter-num ch-n" style="left:120px;top:330px">01 / 03</div>
+    <div class="abs h-display chapter-title" style="left:120px;top:400px"><span class="line"><span class="ch-t">Дашборд задач</span></span></div>
+    <div class="abs lede ch-s" style="left:120px;top:620px;width:1300px">10 задач по офису: оборудование, мебель, закупки и коммуникации.</div>
+  </section>
+
+  <!-- 3–4. Было / стало -->
+  <section class="scene" id="s-ba">
+    <div class="frame" id="ba-frame" style="left:120px;top:150px;width:1280px;height:800px">
+      <img id="ba-old" src="assets/old.png" alt="">
+      <div id="ba-newwrap" style="position:absolute;inset:0;overflow:hidden">
+        <img id="ba-new" src="assets/new-light.png" alt="">
+      </div>
+      <div id="ba-scan" style="position:absolute;top:0;bottom:0;left:0;width:4px;margin-left:-2px;background:var(--accent);box-shadow:0 0 24px 6px rgba(86,188,199,.6)"></div>
+    </div>
+    <div class="abs" style="left:120px;top:88px">
+      <span class="chip c-crit" id="ba-chip-old">Было</span>
+    </div>
+    <div class="abs" style="left:120px;top:88px">
+      <span class="chip c-ok" id="ba-chip-new">Стало</span>
+    </div>
+    <div class="notes" id="ba-notes-old" style="left:1460px;top:190px;width:360px">
+      <div class="note bad">Фиолетовый градиент на весь экран</div>
+      <div class="note bad">Эмодзи и системный шрифт в заголовке</div>
+      <div class="note bad">Итог «~6.7M» складывал сумы с долларами</div>
+      <div class="note bad">Все карточки одинаковые, срочное не видно</div>
+    </div>
+    <div class="notes" id="ba-notes-new" style="left:1460px;top:190px;width:360px">
+      <div class="note good">Одна система цветов, шрифтов и отступов</div>
+      <div class="note good">Задачи сгруппированы по приоритету</div>
+      <div class="note good">Сумы и доллары считаются отдельно</div>
+      <div class="note good">Светлая и тёмная тема, версия для телефона</div>
+    </div>
+  </section>
+
+  <!-- 5. Исправленный бюджет -->
+  <section class="scene" id="s-fix">
+    <div class="abs eyebrow" id="f-eyebrow" style="left:120px;top:200px">Общий бюджет</div>
+    <div class="abs big-num" id="f-old" style="left:120px;top:280px;font-size:240px;color:var(--fg-2)">
+      ~6.7M<div class="strike" id="f-strike" style="width:0"></div>
+    </div>
+    <div class="abs big-num" id="f-new" style="left:120px;top:300px;font-size:200px">
+      <span id="f-uzs" data-fmt="mln">0</span><span style="font-size:96px;color:var(--fg-2)"> сум</span>
+    </div>
+    <div class="abs big-num" id="f-usd-wrap" style="left:120px;top:540px;font-size:120px;color:var(--accent)">
+      + <span id="f-usd" data-fmt="usd">0</span><span style="font-size:64px;color:var(--fg-2)"> за телевизор</span>
+    </div>
+    <div class="abs lede" id="f-cap" style="left:120px;top:740px;width:1400px">Старый итог складывал сумы и доллары в одно число. Теперь валюты считаются раздельно.</div>
+    <div class="abs mono" id="f-detail" style="left:120px;top:880px;font-size:26px;color:var(--fg-3)">7 задач в сумах · 1 задача в долларах · 2 задачи без затрат</div>
+  </section>
+
+  <!-- 6. График бюджета -->
+  <section class="scene" id="s-chart">
+    <div class="abs eyebrow" id="c-eyebrow" style="left:120px;top:110px">Бюджет по задачам, сум</div>
+    <div class="abs h-display" id="c-title" style="left:120px;top:160px;font-size:64px;width:1600px">Куда уходят деньги</div>
+    <div class="abs" id="c-rows" style="left:120px;top:300px;width:1580px;height:620px"></div>
+    <div class="abs" id="c-bracket" style="left:1480px;top:300px;width:10px;height:156px;border:3px solid var(--accent);border-left:0;border-radius:0 10px 10px 0"></div>
+    <div class="abs" id="c-call" style="left:1520px;top:290px;width:290px">
+      <div class="big-num" style="font-size:96px"><span id="c-pct" data-fmt="pct">0</span></div>
+      <div style="font-size:26px;color:var(--fg-2);line-height:1.35;margin-top:10px">бюджета в сумах приходится на охлаждение и кантин</div>
+    </div>
+  </section>
+
+  <!-- 7. Приоритеты -->
+  <section class="scene" id="s-prio">
+    <div class="abs eyebrow" style="left:120px;top:130px" id="p-eyebrow">Реестр по приоритетам</div>
+    <div class="abs h-display" id="p-title" style="left:120px;top:180px;font-size:64px">Срочное видно сразу</div>
+    <div class="pcol" id="p-high" style="left:120px">
+      <h3><svg class="prio" viewBox="0 0 12 12" style="color:var(--crit)"><rect x="0" y="8" width="3" height="4" rx=".6"/><rect x="4.5" y="4.5" width="3" height="7.5" rx=".6"/><rect x="9" y="1" width="3" height="11" rx=".6"/></svg>Высокий</h3>
+      <div class="cnt"><span data-fmt="int" id="p-n1">0</span></div>
+      <ul><li>Тех. аудитория (охлаждение)</li><li>Обновить доски</li><li>ТВ вместо проектора</li></ul>
+    </div>
+    <div class="pcol" id="p-mid" style="left:700px">
+      <h3><svg class="prio" viewBox="0 0 12 12" style="color:var(--fg-2)"><rect x="0" y="8" width="3" height="4" rx=".6"/><rect x="4.5" y="4.5" width="3" height="7.5" rx=".6"/><rect class="off" x="9" y="1" width="3" height="11" rx=".6"/></svg>Средний</h3>
+      <div class="cnt"><span data-fmt="int" id="p-n2">0</span></div>
+      <ul><li>Баннер Evolution</li><li>Кантин (столы и стулья)</li><li>Админка (автоответчик)</li><li>Схема проезда</li></ul>
+    </div>
+    <div class="pcol" id="p-low" style="left:1280px">
+      <h3><svg class="prio" viewBox="0 0 12 12" style="color:var(--fg-3)"><rect x="0" y="8" width="3" height="4" rx=".6"/><rect class="off" x="4.5" y="4.5" width="3" height="7.5" rx=".6"/><rect class="off" x="9" y="1" width="3" height="11" rx=".6"/></svg>Низкий</h3>
+      <div class="cnt"><span data-fmt="int" id="p-n3">0</span></div>
+      <ul><li>Вешалка</li><li>AUX-кабель</li><li>Тарелки для кофе-брейка</li></ul>
+    </div>
+  </section>
+
+  <!-- 8. Карточка задачи -->
+  <section class="scene" id="s-card">
+    <div class="card" id="k-card">
+      <div class="card-eyebrow"><span class="mono">#1</span><span style="color:var(--crit)">● Высокий приоритет</span><span class="mono" style="margin-left:auto">около 2 000 000 сум</span></div>
+      <h3>Тех. аудитория (охлаждение)</h3>
+      <div class="pills">
+        <span class="chip" id="k-todo">К выполнению</span>
+        <span class="chip c-open" id="k-prog">В работе</span>
+      </div>
+      <div class="steps">
+        <div class="step" id="k-s1"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="#062226" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="idx">1.</span><span class="txt">Исследовать варианты охлаждения</span></div>
+        <div class="step" id="k-s2"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="#062226" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="idx">2.</span><span class="txt">Найти поставщиков оборудования</span></div>
+        <div class="step" id="k-s3"><span class="box"><svg viewBox="0 0 16 16" fill="none" stroke="#062226" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="idx">3.</span><span class="txt">Сравнить цены и характеристики</span></div>
+        <div class="step" id="k-s4"><span class="box"></span><span class="idx">4.</span><span class="txt">Заказать и установить оборудование</span></div>
+        <div class="step" id="k-s5"><span class="box"></span><span class="idx">5.</span><span class="txt">Проверить состояние ноутбуков</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;margin-top:34px">
+        <div class="meter"><i id="k-meter"></i></div>
+        <span class="mono" style="font-size:24px;color:var(--fg-2)"><span id="k-done" data-fmt="int">0</span> из 5 шагов</span>
+      </div>
+    </div>
+    <div class="abs h-display" id="k-title" style="left:1040px;top:190px;font-size:64px;width:780px">Карточка задачи</div>
+    <div class="notes" id="k-notes" style="left:1040px;top:330px;width:760px">
+      <div class="note good">Статус меняется в один клик</div>
+      <div class="note good">Шаги плана отмечаются галочками</div>
+      <div class="note good">Прогресс сразу виден в реестре и в сводке</div>
+      <div class="note good">Сводку задачи можно скопировать в чат</div>
+    </div>
+  </section>
+
+  <!-- 9. Тёмная тема и телефон -->
+  <section class="scene" id="s-dark">
+    <div class="frame" id="d-frame" style="left:120px;top:160px;width:1180px;height:760px">
+      <img id="d-img" src="assets/new-dark.png" alt="">
+    </div>
+    <div class="phone" id="d-phone" style="left:1420px;top:150px">
+      <img id="d-mob" src="assets/new-mobile.png" alt="">
+    </div>
+    <div class="abs" id="d-l1" style="left:150px;top:110px"><span class="chip c-open">Тёмная тема</span></div>
+    <div class="abs" id="d-l2" style="left:1470px;top:100px"><span class="chip c-open">Телефон</span></div>
+  </section>
+
+  <!-- 10. Глава 2 -->
+  <section class="scene" id="s-ch2">
+    <div class="abs chapter-num ch-n" style="left:120px;top:330px">02 / 03</div>
+    <div class="abs h-display chapter-title" style="left:120px;top:400px"><span class="line"><span class="ch-t">Скиллы</span></span></div>
+    <div class="abs lede ch-s" style="left:120px;top:620px;width:1300px">Всё, что лежит на GitHub, собрано в одном каталоге.</div>
+  </section>
+
+  <!-- 11. 32 скилла и репозитории -->
+  <section class="scene" id="s-count">
+    <div class="abs big-num" id="n-big" style="left:120px;top:220px;font-size:360px;color:var(--accent)"><span id="n-32" data-fmt="int">0</span></div>
+    <div class="abs lede" id="n-sub" style="left:130px;top:620px;width:720px;color:var(--fg)">скиллов в двух репозиториях из четырёх</div>
+    <div class="abs" id="n-repos" style="left:980px;top:260px;width:820px;height:300px">
+      <div class="repo-row" style="top:0"><span class="name">ai-content-pipeline</span><span class="track"><i id="r1"></i></span><span class="val">31</span></div>
+      <div class="repo-row" style="top:76px"><span class="name">survey-digitizer</span><span class="track"><i id="r2"></i></span><span class="val">1</span></div>
+      <div class="repo-row" style="top:152px"><span class="name">alpha-telegram-bots</span><span class="track"><i id="r3"></i></span><span class="val">0</span></div>
+      <div class="repo-row" style="top:228px"><span class="name">nadrrrrrrrrrrrrrr</span><span class="track"><i id="r4"></i></span><span class="val">0</span></div>
+    </div>
+    <div class="abs" id="n-chips" style="left:120px;top:800px;display:flex;gap:16px;flex-wrap:wrap;width:1700px">
+      <span class="chip n-chip">22 в основной ветке</span>
+      <span class="chip c-warn n-chip">3 только в ветке feat/team-skills</span>
+      <span class="chip n-chip">6 для отделов ALPHA</span>
+      <span class="chip n-chip">1 в survey-digitizer</span>
+    </div>
+  </section>
+
+  <!-- 12. Группы скиллов -->
+  <section class="scene" id="s-groups">
+    <div class="abs eyebrow" id="g-eyebrow" style="left:120px;top:90px">32 скилла по задачам</div>
+    <div class="abs" id="g-tiles" style="left:120px;top:150px;width:1680px;height:640px"></div>
+    <div class="abs lede" id="g-cap" style="left:120px;top:830px;width:1680px;font-size:30px">Выделены группы для видео и презентаций: дизайн, озвучка HeyGen и сборка видео-уроков.</div>
+  </section>
+
+  <!-- 13. Глава 3 -->
+  <section class="scene" id="s-ch3">
+    <div class="abs chapter-num ch-n" style="left:120px;top:330px">03 / 03</div>
+    <div class="abs h-display chapter-title" style="left:120px;top:400px"><span class="line"><span class="ch-t">Что дальше</span></span></div>
+    <div class="abs lede ch-s" style="left:120px;top:620px;width:1300px">По порядку важности.</div>
+  </section>
+
+  <!-- 14. Список дел -->
+  <section class="scene" id="s-next">
+    <div class="todo-row" style="top:110px" id="t1"><span class="chip c-crit">Риск</span><div><b>Запушить ветку feat/deck-design-tokens-figma</b><p>Работа над дизайн-токенами презентаций есть только на компьютере, на GitHub её нет.</p></div></div>
+    <div class="todo-row" style="top:270px" id="t2"><span class="chip c-warn">Решение</span><div><b>Влить feat/team-skills в main</b><p>Три новых скилла: cloudflare-bot, google-workspace, trello. Вопрос открыт с 31.08.</p></div></div>
+    <div class="todo-row" style="top:430px" id="t3"><span class="chip c-warn">Решение</span><div><b>Загрузить ключевые скиллы в claude.ai</b><p>Тогда они будут работать везде, в том числе в приложении на телефоне.</p></div></div>
+    <div class="todo-row" style="top:590px" id="t4"><span class="chip c-open">Открыто</span><div><b>Нефтетрейдинг, уровень 2</b><p>Связка с практикой «Узбекнефтегаза», docx для модульных тестов, перевод на узбекский.</p></div></div>
+    <div class="todo-row" style="top:750px" id="t5"><span class="chip c-open">Открыто</span><div><b>HeyGen-видео курса UNG</b><p>Уроки 2–11 на русском, затем узбекская волна.</p></div></div>
+  </section>
+
+  <!-- 15. Финал -->
+  <section class="scene" id="s-outro">
+    <div class="abs h-display" style="left:120px;top:300px;font-size:120px">
+      <span class="line"><span class="o-l">Дашборд и каталог</span></span>
+      <span class="line"><span class="o-l" style="color:var(--accent)">уже работают</span></span>
+    </div>
+    <div class="abs lede" id="o-lede" style="left:120px;top:620px;width:1400px">Обе страницы открываются по ссылкам на claude.ai. Статусы задач можно менять прямо там.</div>
+    <div class="abs" id="o-chips" style="left:120px;top:760px;display:flex;gap:16px">
+      <span class="chip c-open o-chip">Задачи Надыра</span>
+      <span class="chip c-open o-chip">Скиллы Надыра</span>
+    </div>
+  </section>
+
+  <div id="rail">
+    <div class="track"></div>
+    <div class="fill" id="railFill"></div>
+  </div>
+  <canvas id="grain" width="480" height="270"></canvas>
+  <div id="vignette"></div>
+</div>
+
+<script>
+/* ---------- Данные ---------- */
+const BUDGET = [
+  ["Охлаждение", 2000000], ["Кантин", 2000000], ["Доски", 500000], ["Баннер", 100000],
+  ["Вешалки", 50000], ["Тарелки", 50000], ["AUX-кабель", 30000]
+];
+const GROUPS = [
+  ["Дизайн и веб", 5, "frontend-design<br>canvas-design<br>theme-factory", true],
+  ["Видео и озвучка", 2, "heygen-voice<br>ung-lesson-builder", true],
+  ["Курсы OSNOVA", 5, "content-pipeline<br>oil-trading-course-builder<br>client-revision-iteration"],
+  ["Исследования", 3, "gemini-research<br>perplexity-research<br>qwen"],
+  ["Документы", 3, "doc-coauthoring<br>internal-comms<br>survey-digitizer"],
+  ["Работа и сессии", 4, "onboarding<br>session-handoff<br>token-economy · work-log"],
+  ["Интеграции", 4, "mcp-builder<br>cloudflare-bot<br>google-workspace · trello"],
+  ["Отделы ALPHA", 6, "продажи · бухгалтерия<br>финансы · маркетинг<br>продукт · тендеры"]
+];
+
+/* ---------- Таймлайн (секунды) ---------- */
+const SCENES = {
+  intro: [0, 9], ch1: [9, 13.5], ba: [13.5, 31], fix: [31, 42], chart: [42, 54], prio: [54, 64],
+  card: [64, 77], dark: [77, 86], ch2: [86, 90.5], count: [90.5, 101], groups: [101, 115],
+  ch3: [115, 119.5], next: [119.5, 141], outro: [141, 150]
+};
+const DURATION = 150;
+const CHAPTERS = [["Дашборд задач", 9], ["Скиллы", 86], ["Что дальше", 115]];
+
+/* ---------- Построение динамических блоков ---------- */
+const nf = new Intl.NumberFormat("ru-RU");
+const maxB = BUDGET[0][1];
+document.getElementById("c-rows").innerHTML = BUDGET.map(([n, v], i) => `
+  <div class="bar-row" id="cb${i}" style="top:${i * 78}px">
+    <span class="bar-label">${n}</span>
+    <span class="bar-track"><span class="bar" id="cbar${i}" data-w="${(v / maxB * 70).toFixed(2)}"></span><span class="bar-val" id="cval${i}">${v >= 1e6 ? (v / 1e6).toLocaleString("ru-RU") + " млн" : Math.round(v / 1e3) + " тыс."}</span></span>
+  </div>`).join("");
+document.getElementById("g-tiles").innerHTML = GROUPS.map(([n, c, list, hl], i) => `
+  <div class="tile${hl ? " hl-cand" : ""}" id="gt${i}" style="left:${(i % 4) * 430}px;top:${Math.floor(i / 4) * 330}px">
+    <span class="t-name">${n}</span><span class="t-cnt">${c}</span><span class="t-list">${list}</span>
+  </div>`).join("");
+const rail = document.getElementById("rail");
+CHAPTERS.forEach(([name, at], i) => {
+  const el = document.createElement("div");
+  el.className = "tick";
+  el.id = "tick" + i;
+  el.style.left = ((at - 9) / (141 - 9) * 100) + "%";
+  el.textContent = name;
+  rail.appendChild(el);
+});
+
+/* ---------- Движок: твины по абсолютному времени ---------- */
+const E = {
+  lin: (u) => u,
+  out: (u) => 1 - Math.pow(1 - u, 3),
+  expo: (u) => (u === 1 ? 1 : 1 - Math.pow(2, -10 * u)),
+  inOut: (u) => (u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2),
+  back: (u) => { const c = 1.4; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); }
+};
+const tracks = new Map(); // el -> {prop -> [tween]}
+function tw(sel, t0, dur, props, o = {}) {
+  const els = typeof sel === "string" ? [...document.querySelectorAll(sel)] : [].concat(sel);
+  els.forEach((el, i) => {
+    const s = t0 + (o.stagger || 0) * i;
+    if (!tracks.has(el)) tracks.set(el, {});
+    const tr = tracks.get(el);
+    for (const [p, ab] of Object.entries(props)) {
+      (tr[p] = tr[p] || []).push({ t0: s, t1: s + dur, a: ab[0], b: ab[1], e: E[o.ease || "out"] });
+    }
+  });
+}
+const $ = (id) => document.getElementById(id);
+const clamp = (u) => Math.max(0, Math.min(1, u));
+const FMT = {
+  int: (v) => String(Math.round(v)),
+  mln: (v) => v.toFixed(2).replace(".", ",") + " млн",
+  usd: (v) => "$" + nf.format(Math.round(v / 10) * 10) + (v > 1999 ? "+" : ""),
+  pct: (v) => Math.round(v) + " %"
+};
+function valueAt(list, t) {
+  let v = list[0].a;
+  for (const k of list) {
+    if (t < k.t0) break;
+    const u = k.t1 > k.t0 ? clamp((t - k.t0) / (k.t1 - k.t0)) : 1;
+    v = k.a + (k.b - k.a) * k.e(u);
+  }
+  return v;
+}
+
+/* ---------- Сцены ---------- */
+function sceneFade(id, [s, e], inDur = .6, outDur = .6) {
+  tw($("s-" + id), s, inDur, { opacity: [0, 1] }, { ease: "lin" });
+  tw($("s-" + id), e - outDur, outDur, { opacity: [1, 0] }, { ease: "lin" });
+}
+Object.keys(SCENES).forEach((k) => sceneFade(k, SCENES[k], k === "intro" ? .01 : .6));
+
+// 1. Вступление
+tw("#i-eyebrow", .4, .9, { opacity: [0, 1], y: [20, 0] });
+tw(".i-l", .7, 1.2, { y: [180, 0] }, { ease: "expo", stagger: .18 });
+tw("#i-rule", 1.9, 1.1, { w: [0, 420] }, { ease: "inOut" });
+tw("#i-lede", 2.3, 1, { opacity: [0, 1], y: [24, 0] });
+tw("#s-intro", 0, 9, { scale: [1, 1.03] }, { ease: "lin" });
+
+// Главы
+function chapter(id, [s]) {
+  const sc = $("s-" + id);
+  tw(sc.querySelector(".ch-n"), s + .3, .8, { opacity: [0, 1], x: [-30, 0] });
+  tw(sc.querySelector(".ch-t"), s + .4, 1.1, { y: [200, 0] }, { ease: "expo" });
+  tw(sc.querySelector(".ch-s"), s + 1.1, .9, { opacity: [0, 1], y: [20, 0] });
+}
+chapter("ch1", SCENES.ch1); chapter("ch2", SCENES.ch2); chapter("ch3", SCENES.ch3);
+
+// 3–4. Было / стало
+(() => {
+  const [s] = SCENES.ba, w = s + 8.5; // момент начала «вытирания»
+  tw("#ba-frame", s, 1, { y: [40, 0], opacity: [0, 1] });
+  tw("#ba-old", s, 8.5, { scale: [1, 1.07] }, { ease: "lin" });
+  tw("#ba-chip-old", s + .6, .5, { opacity: [0, 1] });
+  tw("#ba-chip-old", w, .4, { opacity: [1, 0] });
+  tw("#ba-notes-old .note", s + 1.4, .7, { opacity: [0, 1], x: [30, 0] }, { stagger: 1.4 });
+  tw("#ba-notes-old", w - .3, .5, { opacity: [1, 0] });
+  // вытирание старого экрана новым
+  tw("#ba-newwrap", w, 1.6, { clipR: [100, 0] }, { ease: "inOut" });
+  tw("#ba-scan", w - .05, .05, { opacity: [0, 1] }, { ease: "lin" });
+  tw("#ba-scan", w, 1.6, { x: [0, 1280] }, { ease: "inOut" });
+  tw("#ba-scan", w + 1.5, .3, { opacity: [1, 0] }, { ease: "lin" });
+  tw("#ba-chip-new", w + 1.4, .5, { opacity: [0, 1] });
+  tw("#ba-notes-new .note", w + 1.8, .7, { opacity: [0, 1], x: [30, 0] }, { stagger: 1.3 });
+  // проезд камеры вниз по новому дашборду (картинка 1280×1421 в кадре 800)
+  tw("#ba-new", w + 3, 13.5 - 3 - 1, { y: [0, -560] }, { ease: "inOut" });
+})();
+
+// 5. Бюджет
+(() => {
+  const [s] = SCENES.fix;
+  tw("#f-eyebrow", s + .3, .7, { opacity: [0, 1] });
+  tw("#f-old", s + .4, .8, { opacity: [0, 1], y: [30, 0] });
+  tw("#f-strike", s + 1.6, .7, { w: [0, 1.04 * 1] }, { ease: "inOut" });
+  tw("#f-old", s + 2.6, .8, { opacity: [1, 0], y: [0, -60], scale: [1, .9] });
+  tw("#f-new", s + 3, .8, { opacity: [0, 1], y: [30, 0] });
+  tw("#f-uzs", s + 3, 1.8, { num: [0, 4.73] }, { ease: "out" });
+  tw("#f-usd-wrap", s + 4, .8, { opacity: [0, 1], y: [30, 0] });
+  tw("#f-usd", s + 4, 1.5, { num: [0, 2000] });
+  tw("#f-cap", s + 5.4, .9, { opacity: [0, 1], y: [20, 0] });
+  tw("#f-detail", s + 6.6, .9, { opacity: [0, 1] });
+})();
+
+// 6. График
+(() => {
+  const [s] = SCENES.chart;
+  tw("#c-eyebrow", s + .2, .6, { opacity: [0, 1] });
+  tw("#c-title", s + .3, .9, { opacity: [0, 1], y: [24, 0] });
+  BUDGET.forEach((b, i) => {
+    const t = s + 1.2 + i * .35;
+    tw("#cb" + i, t, .5, { opacity: [0, 1] });
+    tw("#cbar" + i, t, 1.1, { wPct: [0, +$("cbar" + i).dataset.w] }, { ease: "out" });
+    tw("#cval" + i, t + .7, .5, { opacity: [0, 1] });
+  });
+  const h = s + 5.6;
+  for (let i = 2; i < BUDGET.length; i++) tw("#cb" + i, h, .6, { opacity: [1, .35] });
+  tw("#c-bracket", h + .2, .6, { opacity: [0, 1], x: [-20, 0] });
+  tw("#c-call", h + .4, .7, { opacity: [0, 1], x: [-20, 0] });
+  tw("#c-pct", h + .4, 1.4, { num: [0, 85] });
+})();
+
+// 7. Приоритеты
+(() => {
+  const [s] = SCENES.prio;
+  tw("#p-eyebrow", s + .2, .6, { opacity: [0, 1] });
+  tw("#p-title", s + .3, .9, { opacity: [0, 1], y: [24, 0] });
+  tw(".pcol", s + .9, .9, { opacity: [0, 1], y: [50, 0] }, { stagger: .25 });
+  tw("#p-n1", s + 1.2, 1.1, { num: [0, 3] }); tw("#p-n2", s + 1.45, 1.1, { num: [0, 4] }); tw("#p-n3", s + 1.7, 1.1, { num: [0, 3] });
+  tw("#p-high li", s + 2, .5, { opacity: [0, 1], x: [-16, 0] }, { stagger: .2 });
+  tw("#p-mid li", s + 2.6, .5, { opacity: [0, 1], x: [-16, 0] }, { stagger: .2 });
+  tw("#p-low li", s + 3.4, .5, { opacity: [0, 1], x: [-16, 0] }, { stagger: .2 });
+  tw("#p-high", s + 5.5, .8, { scale: [1, 1.04] }, { ease: "back" });
+  tw("#p-mid, #p-low", s + 5.5, .8, { opacity: [1, .5] });
+})();
+
+// 8. Карточка задачи
+(() => {
+  const [s] = SCENES.card;
+  tw("#k-card", s + .2, 1, { opacity: [0, 1], y: [60, 0] });
+  tw("#k-title", s + .6, .9, { opacity: [0, 1], y: [24, 0] });
+  tw("#k-prog", s, .01, { opacity: [0, 0] });
+  tw("#k-todo", s + 2.4, .4, { opacity: [1, 0], scale: [1, .9] });
+  tw("#k-prog", s + 2.5, .5, { opacity: [0, 1], scale: [.85, 1] }, { ease: "back" });
+  [3.6, 5, 6.4].forEach((d, i) => {
+    tw("#k-s" + (i + 1), s + d, .01, { on: [0, 1] });
+    tw("#k-s" + (i + 1) + " .box", s + d, .35, { scale: [.7, 1] }, { ease: "back" });
+  });
+  tw("#k-meter", s + 3.6, .6, { wPct: [0, 20] }); tw("#k-meter", s + 5, .6, { wPct: [20, 40] }); tw("#k-meter", s + 6.4, .6, { wPct: [40, 60] });
+  tw("#k-done", s + 3.6, .3, { num: [0, 1] }); tw("#k-done", s + 5, .3, { num: [1, 2] }); tw("#k-done", s + 6.4, .3, { num: [2, 3] });
+  tw("#k-notes .note", s + 1.4, .7, { opacity: [0, 1], x: [30, 0] }, { stagger: 1.5 });
+})();
+
+// 9. Тёмная тема и телефон
+(() => {
+  const [s, e] = SCENES.dark;
+  tw("#d-frame", s + .1, 1, { opacity: [0, 1], x: [-60, 0] });
+  tw("#d-img", s + .5, e - s - 1, { y: [0, -380], scale: [1.02, 1] }, { ease: "inOut" });
+  tw("#d-phone", s + .6, 1.1, { opacity: [0, 1], y: [120, 0] }, { ease: "expo" });
+  tw("#d-mob", s + 1.6, e - s - 2.4, { y: [0, -1700] }, { ease: "inOut" });
+  tw("#d-l1", s + .9, .5, { opacity: [0, 1] }); tw("#d-l2", s + 1.3, .5, { opacity: [0, 1] });
+})();
+
+// 11. 32 скилла
+(() => {
+  const [s] = SCENES.count;
+  tw("#n-big", s + .2, .6, { opacity: [0, 1] });
+  tw("#n-32", s + .2, 2, { num: [0, 32] }, { ease: "out" });
+  tw("#n-sub", s + 1, .8, { opacity: [0, 1], y: [20, 0] });
+  tw("#n-repos .repo-row", s + 2, .6, { opacity: [0, 1], x: [30, 0] }, { stagger: .25 });
+  tw("#r1", s + 2.4, 1.2, { wPct: [0, 100] }); tw("#r2", s + 2.65, 1.2, { wPct: [0, 3.2] });
+  tw(".n-chip", s + 5, .6, { opacity: [0, 1], y: [20, 0] }, { stagger: .4 });
+})();
+
+// 12. Группы
+(() => {
+  const [s] = SCENES.groups;
+  tw("#g-eyebrow", s + .2, .6, { opacity: [0, 1] });
+  tw(".tile", s + .5, .8, { opacity: [0, 1], y: [40, 0], scale: [.96, 1] }, { stagger: .18 });
+  const h = s + 6.5;
+  tw(".tile:not(.hl-cand)", h, .7, { opacity: [1, .4] });
+  tw(".tile.hl-cand", h, .01, { hl: [0, 1] });
+  tw(".tile.hl-cand", h, .7, { scale: [1, 1.04] }, { ease: "back" });
+  tw("#g-cap", h + .4, .8, { opacity: [0, 1], y: [20, 0] });
+})();
+
+// 14. Что дальше
+(() => {
+  const [s] = SCENES.next;
+  ["#t1", "#t2", "#t3", "#t4", "#t5"].forEach((id, i) => {
+    const t = s + .4 + i * 3.6;
+    tw(id, t, .8, { opacity: [0, 1], x: [40, 0] });
+    tw(id + " .chip", t + .2, .5, { scale: [.8, 1] }, { ease: "back" });
+  });
+})();
+
+// 15. Финал
+(() => {
+  const [s, e] = SCENES.outro;
+  tw(".o-l", s + .3, 1.2, { y: [160, 0] }, { ease: "expo", stagger: .2 });
+  tw("#o-lede", s + 1.4, .9, { opacity: [0, 1], y: [20, 0] });
+  tw(".o-chip", s + 2.2, .6, { opacity: [0, 1], y: [16, 0] }, { stagger: .25 });
+  tw("#stage", e - 1.2, 1.2, { fade: [1, 0] }, { ease: "lin" });
+})();
+
+// Рельс глав
+tw("#rail", 9, .8, { opacity: [0, 1] }, { ease: "lin" });
+tw("#rail", 140.2, .8, { opacity: [1, 0] }, { ease: "lin" });
+
+/* Твины одного свойства должны идти по времени */
+for (const tr of tracks.values()) for (const p in tr) tr[p].sort((a, b) => a.t0 - b.t0);
+
+/* ---------- Зерно ---------- */
+const grainCanvas = $("grain"), gctx = grainCanvas.getContext("2d");
+const grainFrames = [];
+let seed = 7;
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+for (let f = 0; f < 6; f++) {
+  const img = gctx.createImageData(480, 270);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = rnd() * 255;
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  grainFrames.push(img);
+}
+
+/* ---------- Применение кадра ---------- */
+const DEF = { x: 0, y: 0, scale: 1, rot: 0, opacity: 1 };
+function seek(t) {
+  for (const [el, tr] of tracks) {
+    const v = {};
+    for (const p in tr) v[p] = valueAt(tr[p], t);
+    const x = v.x ?? 0, y = v.y ?? 0, sc = v.scale ?? 1;
+    if ("x" in v || "y" in v || "scale" in v) el.style.transform = `translate(${x}px, ${y}px) scale(${sc})`;
+    if ("opacity" in v) el.style.opacity = v.opacity;
+    if ("w" in v) el.style.width = (v.w <= 1.5 ? v.w * 100 + "%" : v.w + "px");
+    if ("wPct" in v) el.style.width = v.wPct + "%";
+    if ("clipR" in v) el.style.clipPath = `inset(0 ${v.clipR}% 0 0)`;
+    if ("num" in v) el.textContent = FMT[el.dataset.fmt || "int"](v.num);
+    if ("on" in v) el.classList.toggle("on", v.on >= .5);
+    if ("hl" in v) el.classList.toggle("hl", v.hl >= .5);
+    if ("fade" in v) el.style.filter = `brightness(${v.fade})`;
+  }
+  // сцены вне своего отрезка не рисуем
+  for (const k in SCENES) {
+    const [s, e] = SCENES[k];
+    $("s-" + k).style.visibility = t >= s - .05 && t <= e + .05 ? "visible" : "hidden";
+  }
+  // фон
+  $("grid").style.transform = `translate(${(t * 6) % 64}px, ${(t * 3) % 64}px)`;
+  $("glowA").style.transform = `translate(${-200 + Math.sin(t * .11) * 260}px, ${-500 + Math.cos(t * .09) * 160}px)`;
+  $("glowB").style.transform = `translate(${1000 + Math.cos(t * .07) * 300}px, ${200 + Math.sin(t * .13) * 200}px)`;
+  gctx.putImageData(grainFrames[Math.floor(t * 24) % grainFrames.length], 0, 0);
+  // рельс
+  const p = clamp((t - 9) / (141 - 9));
+  $("railFill").style.width = p * 100 + "%";
+  let cur = -1;
+  CHAPTERS.forEach(([, at], i) => { if (t >= at) cur = i; });
+  CHAPTERS.forEach((_, i) => $("tick" + i).classList.toggle("cur", i === cur));
+}
+window.DURATION = DURATION;
+window.seek = seek;
+window.ready = (document.fonts ? document.fonts.ready : Promise.resolve()).then(() =>
+  Promise.all([...document.images].map((im) => im.complete ? 0 : new Promise((r) => { im.onload = im.onerror = r; }))));
+seek(0);
+</script>
+</body>
+</html>
