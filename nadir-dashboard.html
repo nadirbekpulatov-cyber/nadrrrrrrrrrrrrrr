@@ -1,862 +1,930 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Дашборд задач Надыра</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Задачи Надыра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: сводка во всю ширину → реестр задач по приоритетам (основная колонка) + бюджет (боковая); на телефоне всё в одну колонку */
+:root {
+  /* Цвет: холодные нейтрали с бирюзовым оттенком, бирюза как акцент, семантика отдельно */
+  --bg: #F1F4F5;
+  --surface: #FFFFFF;
+  --surface-2: #E8EEF0;
+  --line: #D3DDE1;
+  --line-strong: #B9C7CD;
+  --fg: #13232A;
+  --fg-2: #46575F;
+  --fg-3: #5B6C74;
+  --accent: #0A6D78;
+  --accent-soft: #DCEEF0;
+  --on-accent: #FFFFFF;
+  --chart: #0A8C9E;
+  --chart-track: #DCE7EA;
+  --crit: #B42318;
+  --warn: #9A5B00;
+  --warn-soft: #FBF0DC;
+  --ok: #23704A;
+  --ok-soft: #E1F2E8;
+  --shadow: 0 1px 2px rgba(19, 35, 42, .06), 0 8px 24px rgba(19, 35, 42, .06);
+  --scrim: rgba(13, 21, 24, .45);
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
+  /* Шрифты: Unbounded только для заголовка, Golos Text для текста, IBM Plex Mono для номеров и сумм */
+  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('https://cataas.com/cat/says/Dashboard?size=200');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.1;
-            z-index: -1;
-            animation: float 20s ease-in-out infinite;
-        }
+  /* Шкала размеров и отступов (кратно 4) */
+  --t-xs: 12px; --t-sm: 13px; --t-md: 15px; --t-lg: 18px; --t-xl: 28px; --t-2xl: 34px;
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px;
+  --r-1: 6px; --r-2: 10px; --r-3: 14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1518; --surface: #142126; --surface-2: #1B2C32; --line: #2A3C43; --line-strong: #3B5058;
+    --fg: #E3ECEF; --fg-2: #A8B8BF; --fg-3: #8497A0;
+    --accent: #56BCC7; --accent-soft: #12343A; --on-accent: #062226;
+    --chart: #14A3B4; --chart-track: #1B2C32;
+    --crit: #F2766B; --warn: #E5A945; --warn-soft: #33270F; --ok: #66C892; --ok-soft: #15301F;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    --scrim: rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1518; --surface: #142126; --surface-2: #1B2C32; --line: #2A3C43; --line-strong: #3B5058;
+  --fg: #E3ECEF; --fg-2: #A8B8BF; --fg-3: #8497A0;
+  --accent: #56BCC7; --accent-soft: #12343A; --on-accent: #062226;
+  --chart: #14A3B4; --chart-track: #1B2C32;
+  --crit: #F2766B; --warn: #E5A945; --warn-soft: #33270F; --ok: #66C892; --ok-soft: #15301F;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  --scrim: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(2deg); }
-        }
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding-inline: var(--s-4);
+  padding-block: var(--s-6) var(--s-7);
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 var(--t-md)/1.5 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+.page { max-width: 1200px; margin-inline: auto; display: grid; gap: var(--s-5); }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+/* Шапка */
+.masthead { display: grid; gap: var(--s-2); }
+.eyebrow {
+  font-size: var(--t-xs); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3);
+}
+h1 {
+  margin: 0; font: 600 var(--t-2xl)/1.15 var(--font-display); letter-spacing: -.01em; text-wrap: balance;
+}
+.lede { margin: 0; max-width: 62ch; color: var(--fg-2); }
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
+/* Панели */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-3); }
+.panel-head { display: grid; gap: 2px; padding: var(--s-4) var(--s-5) 0; }
+.panel-title { margin: 0; font-size: var(--t-lg); font-weight: 600; }
+.panel-sub { margin: 0; font-size: var(--t-sm); color: var(--fg-3); }
 
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
+/* Сводка */
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stat { display: grid; gap: 2px; align-content: start; padding: var(--s-4) var(--s-5); min-width: 0; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat-label { font-size: var(--t-sm); color: var(--fg-2); }
+.stat-value { font-size: var(--t-xl); font-weight: 600; line-height: 1.2; letter-spacing: -.01em; }
+.stat-note { font-size: var(--t-sm); color: var(--fg-3); }
+.progress {
+  grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
+  gap: var(--s-4); padding: var(--s-3) var(--s-5); border-top: 1px solid var(--line);
+  font-size: var(--t-sm); color: var(--fg-2);
+}
+.meter { height: 6px; border-radius: 3px; background: var(--chart-track); overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--chart); border-radius: 3px; transition: width .3s ease; }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+/* Основная сетка */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: var(--s-5); align-items: start; }
 
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
+/* Фильтры */
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-4); align-items: center; padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--line); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; margin: 0; border: 0; border-radius: var(--r-2); background: var(--surface-2); }
+.seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 7px;
+  font-size: var(--t-sm); font-weight: 500; color: var(--fg-2); cursor: pointer; white-space: nowrap;
+}
+.seg label .count { font-family: var(--font-data); font-size: var(--t-xs); color: var(--fg-3); }
+.seg input:checked + label { background: var(--surface); color: var(--fg); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search { position: relative; flex: 1 1 200px; min-width: 0; }
+.search svg { position: absolute; left: 10px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--fg-3); pointer-events: none; }
+.search input {
+  width: 100%; padding: 7px 12px 7px 34px; border: 1px solid var(--line); border-radius: var(--r-2);
+  background: var(--surface); font-size: var(--t-sm);
+}
+.search input::placeholder { color: var(--fg-3); }
+.search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-        }
+/* Реестр */
+.cols, .task {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 112px 76px 148px; gap: var(--s-4); align-items: center;
+  padding-inline: var(--s-5);
+}
+.cols {
+  padding-block: var(--s-3) var(--s-2); font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--fg-3);
+}
+.cols .num { text-align: right; }
+.group-head {
+  display: flex; align-items: baseline; gap: var(--s-3); flex-wrap: wrap;
+  padding: var(--s-4) var(--s-5) var(--s-2); border-top: 1px solid var(--line);
+}
+.group-head h3 { margin: 0; display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--t-md); font-weight: 600; }
+.group-meta { font-size: var(--t-sm); color: var(--fg-3); }
+.task-list { list-style: none; margin: 0; padding: 0 0 var(--s-2); }
+.task {
+  width: 100%; padding-block: var(--s-3); border: 0; background: none; text-align: left; cursor: pointer;
+  border-radius: 0; transition: background-color .15s ease;
+}
+.task:hover { background: var(--surface-2); }
+.task-id { font-family: var(--font-data); font-size: var(--t-sm); color: var(--fg-3); }
+.task-main { display: grid; gap: 2px; min-width: 0; }
+.task-title { font-weight: 600; }
+.task-desc { font-size: var(--t-sm); color: var(--fg-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.task-meta { display: contents; }
+.task-budget { font-family: var(--font-data); font-size: var(--t-sm); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.task-budget.muted { color: var(--fg-3); }
+.task-plan { display: grid; gap: 4px; font-family: var(--font-data); font-size: var(--t-xs); color: var(--fg-2); font-variant-numeric: tabular-nums; }
+.task-plan .meter { height: 4px; }
+.task.is-done .task-title { color: var(--fg-2); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.empty { padding: var(--s-6) var(--s-5); text-align: center; color: var(--fg-2); display: grid; gap: var(--s-3); justify-items: center; border-top: 1px solid var(--line); }
 
-        .stat-number {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
+/* Метки статуса и приоритета */
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; justify-self: start; padding: 3px 10px 3px 7px;
+  border-radius: 999px; background: var(--pill-bg); color: var(--pill-fg);
+  font-size: var(--t-xs); font-weight: 600; white-space: nowrap;
+}
+.pill svg { width: 14px; height: 14px; flex: none; }
+.st-todo { --pill-bg: var(--surface-2); --pill-fg: var(--fg-2); }
+.st-progress { --pill-bg: var(--accent-soft); --pill-fg: var(--accent); }
+.st-done { --pill-bg: var(--ok-soft); --pill-fg: var(--ok); }
+.st-hold { --pill-bg: var(--warn-soft); --pill-fg: var(--warn); }
+.ico-cut { stroke: var(--pill-bg, var(--surface)); }
+.prio-ico { width: 12px; height: 12px; flex: none; }
+.prio-ico rect { fill: currentColor; }
+.prio-ico rect.off { fill: var(--line-strong); }
+.prio-high { color: var(--crit); }
+.prio-medium { color: var(--fg-2); }
+.prio-low { color: var(--fg-3); }
 
-        .stat-label {
-            color: #666;
-            font-size: 1em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+/* Бюджет */
+.aside { display: grid; gap: var(--s-5); }
+.bars { list-style: none; margin: 0; padding: var(--s-4) var(--s-5) var(--s-5); display: grid; gap: var(--s-3); }
+.bar-row { display: grid; gap: 4px; }
+.bar-label { font-size: var(--t-sm); color: var(--fg-2); }
+.bar-line { display: flex; align-items: center; gap: var(--s-2); border-left: 1px solid var(--line-strong); }
+.bar {
+  height: 14px; width: calc((100% - 84px) * var(--w)); min-width: 3px; padding: 0; border: 0;
+  background: var(--chart); border-radius: 0 4px 4px 0; cursor: pointer;
+}
+.bar:hover, .bar:focus-visible { filter: brightness(1.12); }
+.bar-value { font-family: var(--font-data); font-size: var(--t-xs); color: var(--fg); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bars-note { margin: 0; padding: 0 var(--s-5) var(--s-5); font-size: var(--t-sm); color: var(--fg-3); }
+.tooltip {
+  position: fixed; z-index: 30; max-width: 240px; padding: var(--s-2) var(--s-3); border-radius: var(--r-1);
+  background: var(--fg); color: var(--bg); font-size: var(--t-xs); line-height: 1.45; pointer-events: none; box-shadow: var(--shadow);
+}
 
-        .filters {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
+/* Карточка задачи */
+dialog {
+  width: min(600px, calc(100% - 2 * var(--s-4))); max-height: calc(100% - 2 * var(--s-6)); padding: 0;
+  border: 1px solid var(--line); border-radius: var(--r-3); background: var(--surface); color: var(--fg); box-shadow: var(--shadow);
+}
+dialog::backdrop { background: var(--scrim); }
+.dlg { display: grid; gap: var(--s-5); padding: var(--s-5); }
+.dlg-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-3); align-items: start; }
+.dlg-eyebrow { display: flex; align-items: center; gap: var(--s-3); font-size: var(--t-sm); color: var(--fg-3); }
+.dlg-eyebrow .prio { display: inline-flex; align-items: center; gap: 6px; }
+.dlg h2 { margin: 4px 0 0; font-size: 22px; line-height: 1.25; font-weight: 600; text-wrap: balance; }
+.dlg-desc { margin: 0; color: var(--fg-2); max-width: 62ch; }
+.icon-btn {
+  display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--r-2);
+  background: var(--surface-2); color: var(--fg-2); cursor: pointer;
+}
+.icon-btn:hover { color: var(--fg); }
+.icon-btn svg { width: 18px; height: 18px; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-5); margin: 0; }
+.facts div { display: grid; gap: 2px; min-width: 0; }
+.facts dt { font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--fg-3); }
+.facts dd { margin: 0; font-weight: 500; }
+.dlg h3 { margin: 0 0 var(--s-2); display: flex; justify-content: space-between; gap: var(--s-3); font-size: var(--t-md); font-weight: 600; }
+.dlg h3 .mono { font-size: var(--t-sm); font-weight: 400; color: var(--fg-3); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: step; }
+.steps li { counter-increment: step; }
+.steps label {
+  display: grid; grid-template-columns: 20px 24px minmax(0, 1fr); gap: var(--s-2); align-items: start;
+  padding: 6px var(--s-2); border-radius: var(--r-1); cursor: pointer;
+}
+.steps label:hover { background: var(--surface-2); }
+.steps label::after { content: counter(step) "."; grid-column: 2; grid-row: 1; font-family: var(--font-data); font-size: var(--t-sm); color: var(--fg-3); padding-top: 1px; }
+.steps input { grid-column: 1; grid-row: 1; width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); }
+.steps span { grid-column: 3; grid-row: 1; }
+.steps input:checked ~ span { color: var(--fg-3); text-decoration: line-through; }
+.links { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.links a {
+  display: flex; justify-content: space-between; gap: var(--s-3); align-items: baseline; padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line); border-radius: var(--r-2); color: var(--accent); text-decoration: none; font-weight: 500;
+}
+.links a:hover { border-color: var(--accent); }
+.links .host { font-family: var(--font-data); font-size: var(--t-xs); color: var(--fg-3); font-weight: 400; overflow-wrap: anywhere; text-align: right; }
+.dlg-foot { display: flex; justify-content: flex-end; gap: var(--s-3); padding-top: var(--s-4); border-top: 1px solid var(--line); }
+.btn {
+  display: inline-flex; align-items: center; gap: var(--s-2); padding: 8px 16px; border: 1px solid transparent; border-radius: var(--r-2);
+  font-size: var(--t-sm); font-weight: 600; cursor: pointer;
+}
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { background: transparent; border-color: var(--line); color: var(--fg); }
+.btn-ghost:hover { background: var(--surface-2); }
 
-        .filter-group {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
+.toast {
+  position: fixed; left: 50%; bottom: calc(var(--s-5) + env(safe-area-inset-bottom, 0px)); translate: -50% 0; z-index: 40;
+  padding: var(--s-2) var(--s-4); border-radius: var(--r-2); background: var(--fg); color: var(--bg);
+  font-size: var(--t-sm); font-weight: 500; box-shadow: var(--shadow);
+}
+.footnote { margin: 0; font-size: var(--t-xs); color: var(--fg-3); }
 
-        .filter-group label {
-            font-weight: 600;
-            color: #333;
-            margin-right: 10px;
-        }
-
-        .filter-group select,
-        .filter-group input {
-            padding: 10px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s ease;
-        }
-
-        .filter-group select:focus,
-        .filter-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .tasks-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 20px;
-        }
-
-        .task-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .task-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .task-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(to bottom, #667eea, #764ba2);
-        }
-
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .task-id {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: bold;
-        }
-
-        .task-status {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-todo {
-            background: #ffeaa7;
-            color: #d63031;
-        }
-
-        .status-in-progress {
-            background: #74b9ff;
-            color: #0984e3;
-        }
-
-        .status-done {
-            background: #55efc4;
-            color: #00b894;
-        }
-
-        .status-on-hold {
-            background: #fab1a0;
-            color: #d63031;
-        }
-
-        .task-title {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #2d3436;
-            margin-bottom: 10px;
-        }
-
-        .task-description {
-            color: #636e72;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
-
-        .task-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .detail-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .detail-label {
-            font-size: 0.8em;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
-        }
-
-        .detail-value {
-            font-weight: 600;
-            color: #2d3436;
-        }
-
-        .priority-high {
-            color: #d63031;
-        }
-
-        .priority-medium {
-            color: #e17055;
-        }
-
-        .priority-low {
-            color: #00b894;
-        }
-
-        .task-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9em;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f1f2f6;
-            color: #2d3436;
-        }
-
-        .btn-secondary:hover {
-            background: #dfe4ea;
-        }
-
-        .task-links {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .task-links a {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 0.9em;
-            display: block;
-            margin-bottom: 5px;
-            transition: color 0.3s ease;
-        }
-
-        .task-links a:hover {
-            color: #764ba2;
-            text-decoration: underline;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #666;
-            transition: color 0.3s ease;
-        }
-
-        .close-modal:hover {
-            color: #d63031;
-        }
-
-        @media (max-width: 768px) {
-            .tasks-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .task-details {
-                grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2em;
-            }
-        }
-
-        .cat-meme {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            background: url('https://cataas.com/cat/cute?size=80') no-repeat center;
-            background-size: contain;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            z-index: 100;
-        }
-
-        .cat-meme:hover {
-            transform: scale(1.2) rotate(10deg);
-        }
-    </style>
+/* Адаптив */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat:nth-child(3) { border-left: 0; }
+  .stat:nth-child(n + 3) { border-top: 1px solid var(--line); }
+  .cols { display: none; }
+  .task { grid-template-columns: 32px minmax(0, 1fr); row-gap: var(--s-2); }
+  .task-meta { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--s-2) var(--s-4); grid-column: 2; }
+  .task-meta .pill { grid-column: 1 / -1; }
+  .task-budget { text-align: left; }
+  .task-plan { grid-template-columns: 56px auto; justify-content: start; align-items: center; gap: var(--s-2); }
+}
+@media (max-width: 520px) {
+  body { padding-block: var(--s-5) var(--s-7); }
+  h1 { font-size: var(--t-xl); }
+  .toolbar, .cols, .task, .group-head, .panel-head, .bars, .bars-note, .stat, .progress { padding-inline: var(--s-4); }
+  .progress { grid-template-columns: minmax(0, 1fr) auto; }
+  .progress > span:first-child { grid-column: 1 / -1; }
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .dlg { padding: var(--s-4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📋 Дашборд задач Надыра</h1>
-            <p>Интерактивная панель управления задачами с аналитикой и отслеживанием</p>
-        </div>
+<main class="page">
+  <header class="masthead">
+    <div class="eyebrow">Реестр задач · создан 22.06.2026</div>
+    <h1>Задачи Надыра</h1>
+    <p class="lede">Оборудование, мебель, закупки и коммуникации. Нажмите на задачу, чтобы открыть план действий, ссылки и сменить статус.</p>
+  </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="totalTasks">10</div>
-                <div class="stat-label">Всего задач</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="todoTasks">10</div>
-                <div class="stat-label">В ожидании</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="highPriority">3</div>
-                <div class="stat-label">Высокий приоритет</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number" id="totalBudget">~6.7M</div>
-                <div class="stat-label">Общий бюджет (сум)</div>
-            </div>
-        </div>
-
-        <div class="filters">
-            <div class="filter-group">
-                <label for="statusFilter">Статус:</label>
-                <select id="statusFilter">
-                    <option value="all">Все</option>
-                    <option value="todo">To Do</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="done">Done</option>
-                    <option value="on-hold">On Hold</option>
-                </select>
-
-                <label for="priorityFilter">Приоритет:</label>
-                <select id="priorityFilter">
-                    <option value="all">Все</option>
-                    <option value="high">Высокий</option>
-                    <option value="medium">Средний</option>
-                    <option value="low">Низкий</option>
-                </select>
-
-                <label for="searchFilter">Поиск:</label>
-                <input type="text" id="searchFilter" placeholder="Название задачи...">
-            </div>
-        </div>
-
-        <div class="tasks-grid" id="tasksGrid">
-            <!-- Задачи будут добавлены через JavaScript -->
-        </div>
+  <section class="panel summary" aria-label="Сводка">
+    <div class="stat">
+      <div class="stat-label">Открытые задачи</div>
+      <div class="stat-value" id="statOpen">10</div>
+      <div class="stat-note" id="statOpenNote">из 10, готово 0</div>
     </div>
-
-    <div class="cat-meme" title="Мяу!"></div>
-
-    <div class="modal" id="taskModal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
-            <div id="modalContent"></div>
-        </div>
+    <div class="stat">
+      <div class="stat-label">Высокий приоритет</div>
+      <div class="stat-value" id="statHigh">3</div>
+      <div class="stat-note" id="statHighNote">Охлаждение, доски, ТВ</div>
     </div>
+    <div class="stat">
+      <div class="stat-label">Бюджет в сумах</div>
+      <div class="stat-value" id="statUzs">4,73 млн</div>
+      <div class="stat-note" id="statUzsNote">7 задач, ориентировочно</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Бюджет в долларах</div>
+      <div class="stat-value" id="statUsd">$2 000+</div>
+      <div class="stat-note" id="statUsdNote">ТВ вместо проектора</div>
+    </div>
+    <div class="progress">
+      <span>План выполнен</span>
+      <div class="meter" role="progressbar" aria-label="Выполнено шагов" aria-valuemin="0" aria-valuemax="42" aria-valuenow="0" id="totalMeter"><i></i></div>
+      <span class="mono" id="totalSteps">0 из 42 шагов</span>
+    </div>
+  </section>
 
-    <script>
-        const tasks = [
-            {
-                id: 1,
-                title: "Тех. Аудитория (Охлаждение)",
-                description: "Найти альтернативу кондиционеру, проверить ноутбуки. Решить проблему охлаждения в техническом помещении.",
-                status: "todo",
-                priority: "high",
-                budget: "~2,000,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Исследовать варианты охлаждения (вентиляторы, мобильный кондиционер)",
-                    "Найти поставщиков оборудования",
-                    "Сравнить цены и характеристики",
-                    "Заказать и установить оборудование",
-                    "Проверить состояние ноутбуков"
-                ],
-                links: [
-                    { text: "Кондиционеры BTU", url: "https://global.uz/ru/catalog/konditsionery-bt/" },
-                    { text: "Вентиляторы", url: "https://glotr.uz/search?q=ventilyator" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 2,
-                title: "Обновить доски",
-                description: "Вымыть существующие доски, найти и заказать новые модели Deli: 7884, 7820, EV163",
-                status: "todo",
-                priority: "high",
-                budget: "~500,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Тщательно вымыть существующие доски",
-                    "Найти точные модели на Glotr.uz или Leroy Merlin",
-                    "Сравнить цены и наличие",
-                    "Сделать заказ выбранных моделей"
-                ],
-                links: [
-                    { text: "Доски Deli на Glotr", url: "https://glotr.uz/search?q=Deli+доска" },
-                    { text: "Офисные доски Leroy Merlin", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/mebel-dlya-ofisa/doski-dlya-pisma/" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 3,
-                title: "ТВ вместо проектора",
-                description: "Продать старый проектор и купить новый телевизор стоимостью от $2000",
-                status: "todo",
-                priority: "high",
-                budget: "$2000+",
-                responsible: "Надыр",
-                steps: [
-                    "Оценить текущее состояние проектора",
-                    "Найти покупателя на проектор (Avito, OLX, Telegram)",
-                    "Подобрать ТВ стоимостью от $2000",
-                    "Сравнить предложения в магазинах",
-                    "Оформить покупку"
-                ],
-                links: [
-                    { text: "Samsung QLED 75\"", url: "https://techno.uz/ru/samsung/qe75q60aau" },
-                    { text: "Проекторы на OLX", url: "https://www.olx.uz/obyavleniya/proektor-optoma-s08-2000-lm-3d-1080p-idf0v.html" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 4,
-                title: "Баннер Evolution",
-                description: "Решить судьбу баннера Evolution: снять или заменить",
-                status: "todo",
-                priority: "medium",
-                budget: "~100,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Уточнить требования арендодателя",
-                    "Оценить возможность снятия",
-                    "При необходимости - заказать новый баннер",
-                    "Согласовать установку/снятие"
-                ],
-                links: [
-                    { text: "Печать баннеров Print.uz", url: "https://print.uz" },
-                    { text: "Рекламные услуги Reklam.uz", url: "https://reklam.uz" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 5,
-                title: "Вешалка",
-                description: "Убрать старые вешалки, подумать об альтернативных решениях",
-                status: "todo",
-                priority: "low",
-                budget: "~50,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Физически убрать старые вешалки",
-                    "Исследовать альтернативные варианты",
-                    "Рассмотреть крючки на стену или штангу в шкафу",
-                    "Закупить необходимые материалы"
-                ],
-                links: [
-                    { text: "Гардеробные системы", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/garderobnye-sistemy-i-shkafy/garderobnye-sistemy/" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 6,
-                title: "AUX кабель",
-                description: "Купить кабель AUX (3.5 мм jack) для подключения аудиоустройств",
-                status: "todo",
-                priority: "low",
-                budget: "~30,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Найти кабель 3.5 мм нужной длины",
-                    "Сравнить цены и качество",
-                    "Заказать или купить в магазине"
-                ],
-                links: [
-                    { text: "AUX кабель на Glotr", url: "https://glotr.uz/product/aux-kabel-3-5mm-1-5m-50812" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 7,
-                title: "Кантин (столы и стулья)",
-                description: "Найти и согласовать покупку новых столов и стульев для кантинной зоны",
-                status: "todo",
-                priority: "medium",
-                budget: "~2,000,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Определить необходимое количество мебели",
-                    "Выбрать стиль и дизайн",
-                    "Найти поставщиков мебели",
-                    "Сравнить цены и условия",
-                    "Согласовать покупку и заказать"
-                ],
-                links: [
-                    { text: "Офисные столы", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/mebel-dlya-ofisa/stoly-dlya-ofisa/" },
-                    { text: "Мебель Dekor.uz", url: "https://dekor.uz" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 8,
-                title: "Тарелки для кофе-брейк",
-                description: "Добавить одноразовые тарелки в список регулярных закупок",
-                status: "todo",
-                priority: "low",
-                budget: "~50,000 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Найти надежного поставщика",
-                    "Определить необходимый объем закупки",
-                    "Добавить в список регулярных закупок",
-                    "Контролировать наличие на складе"
-                ],
-                links: [
-                    { text: "Одноразовая посуда Print.uz", url: "https://print.uz" }
-                ],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 9,
-                title: "Админка (автоответчик)",
-                description: "Настроить автоответчик в админке и предоставить доступ координаторам",
-                status: "todo",
-                priority: "medium",
-                budget: "0 сум",
-                responsible: "Надыр",
-                steps: [
-                    "Настроить автоответчик в используемой платформе",
-                    "Создать учетные записи для координаторов",
-                    "Выдать логины и пароли",
-                    "Провести инструктаж по использованию"
-                ],
-                links: [],
-                dateCreated: "22.06.2026"
-            },
-            {
-                id: 10,
-                title: "Схема проезда",
-                description: "Совместно с отделом маркетинга снять видео или создать инструкцию со схемой проезда",
-                status: "todo",
-                priority: "medium",
-                budget: "0 сум (внутренние ресурсы)",
-                responsible: "Надыр + Маркетинг",
-                steps: [
-                    "Совместно с маркетингом обсудить формат",
-                    "Подготовить сценарий/план съемки",
-                    "Снять видео или создать графическую инструкцию",
-                    "Загрузить и опубликовать материал"
-                ],
-                links: [],
-                dateCreated: "22.06.2026"
-            }
-        ];
+  <div class="layout">
+    <section class="panel register" aria-labelledby="registerTitle">
+      <h2 id="registerTitle" class="visually-hidden">Задачи</h2>
+      <div class="toolbar">
+        <fieldset class="seg" id="statusFilter">
+          <legend>Статус</legend>
+        </fieldset>
+        <fieldset class="seg" id="priorityFilter">
+          <legend>Приоритет</legend>
+        </fieldset>
+        <label class="search">
+          <span class="visually-hidden">Поиск по задачам</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="7" cy="7" r="4.75"/><path d="M10.5 10.5 14 14" stroke-linecap="round"/></svg>
+          <input type="search" id="searchFilter" placeholder="Название или описание" autocomplete="off">
+        </label>
+      </div>
+      <div class="cols" aria-hidden="true">
+        <span>№</span><span>Задача</span><span class="num">Бюджет</span><span>План</span><span>Статус</span>
+      </div>
+      <div id="register"></div>
+    </section>
 
-        function getStatusClass(status) {
-            const statusMap = {
-                'todo': 'status-todo',
-                'in-progress': 'status-in-progress',
-                'done': 'status-done',
-                'on-hold': 'status-on-hold'
-            };
-            return statusMap[status] || 'status-todo';
-        }
+    <aside class="aside">
+      <section class="panel" aria-labelledby="budgetTitle">
+        <div class="panel-head">
+          <h2 class="panel-title" id="budgetTitle">Бюджет по задачам</h2>
+          <p class="panel-sub">В сумах, ориентировочно. Нажмите на полосу, чтобы открыть задачу.</p>
+        </div>
+        <ol class="bars" id="budgetBars"></ol>
+        <p class="bars-note" id="budgetNote"></p>
+      </section>
+      <p class="footnote">Статусы и отмеченные шаги сохраняются только в этом браузере.</p>
+    </aside>
+  </div>
+</main>
 
-        function getPriorityClass(priority) {
-            const priorityMap = {
-                'high': 'priority-high',
-                'medium': 'priority-medium',
-                'low': 'priority-low'
-            };
-            return priorityMap[priority] || 'priority-medium';
-        }
+<dialog id="taskDialog" aria-labelledby="dlgTitle">
+  <div class="dlg">
+    <div class="dlg-head">
+      <div>
+        <div class="dlg-eyebrow"><span class="mono" id="dlgId"></span><span class="prio" id="dlgPriority"></span></div>
+        <h2 id="dlgTitle"></h2>
+      </div>
+      <button class="icon-btn" id="dlgClose" type="button" aria-label="Закрыть">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </div>
+    <p class="dlg-desc" id="dlgDesc"></p>
+    <fieldset class="seg" id="dlgStatus">
+      <legend>Статус задачи</legend>
+    </fieldset>
+    <dl class="facts" id="dlgFacts"></dl>
+    <section>
+      <h3>План действий <span class="mono" id="dlgProgress"></span></h3>
+      <ol class="steps" id="dlgSteps"></ol>
+    </section>
+    <section id="dlgLinksWrap">
+      <h3>Где смотреть</h3>
+      <ul class="links" id="dlgLinks"></ul>
+    </section>
+    <div class="dlg-foot">
+      <button class="btn btn-ghost" id="dlgCopy" type="button">Скопировать сводку</button>
+      <button class="btn btn-primary" id="dlgDone" type="button">Готово</button>
+    </div>
+  </div>
+</dialog>
 
-        function getStatusText(status) {
-            const statusTextMap = {
-                'todo': 'To Do',
-                'in-progress': 'In Progress',
-                'done': 'Done',
-                'on-hold': 'On Hold'
-            };
-            return statusTextMap[status] || 'To Do';
-        }
+<div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-        function renderTasks(filteredTasks = tasks) {
-            const tasksGrid = document.getElementById('tasksGrid');
-            tasksGrid.innerHTML = '';
+<script>
+const TASKS = [
+  {
+    id: 1, short: "Охлаждение",
+    title: "Тех. аудитория (охлаждение)",
+    description: "Найти альтернативу кондиционеру, проверить ноутбуки. Решить проблему охлаждения в техническом помещении.",
+    status: "todo", priority: "high",
+    budget: { uzs: 2000000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Исследовать варианты охлаждения (вентиляторы, мобильный кондиционер)",
+      "Найти поставщиков оборудования",
+      "Сравнить цены и характеристики",
+      "Заказать и установить оборудование",
+      "Проверить состояние ноутбуков"
+    ],
+    links: [
+      { text: "Кондиционеры BTU", url: "https://global.uz/ru/catalog/konditsionery-bt/" },
+      { text: "Вентиляторы", url: "https://glotr.uz/search?q=ventilyator" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 2, short: "Доски",
+    title: "Обновить доски",
+    description: "Вымыть существующие доски, найти и заказать новые модели Deli: 7884, 7820, EV163.",
+    status: "todo", priority: "high",
+    budget: { uzs: 500000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Тщательно вымыть существующие доски",
+      "Найти точные модели на Glotr.uz или Leroy Merlin",
+      "Сравнить цены и наличие",
+      "Сделать заказ выбранных моделей"
+    ],
+    links: [
+      { text: "Доски Deli на Glotr", url: "https://glotr.uz/search?q=Deli+доска" },
+      { text: "Офисные доски Leroy Merlin", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/mebel-dlya-ofisa/doski-dlya-pisma/" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 3, short: "ТВ",
+    title: "ТВ вместо проектора",
+    description: "Продать старый проектор и купить новый телевизор стоимостью от $2000.",
+    status: "todo", priority: "high",
+    budget: { usd: 2000, plus: true },
+    responsible: "Надыр",
+    steps: [
+      "Оценить текущее состояние проектора",
+      "Найти покупателя на проектор (Avito, OLX, Telegram)",
+      "Подобрать ТВ стоимостью от $2000",
+      "Сравнить предложения в магазинах",
+      "Оформить покупку"
+    ],
+    links: [
+      { text: "Samsung QLED 75\"", url: "https://techno.uz/ru/samsung/qe75q60aau" },
+      { text: "Проекторы на OLX", url: "https://www.olx.uz/obyavleniya/proektor-optoma-s08-2000-lm-3d-1080p-idf0v.html" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 4, short: "Баннер",
+    title: "Баннер Evolution",
+    description: "Решить судьбу баннера Evolution: снять или заменить.",
+    status: "todo", priority: "medium",
+    budget: { uzs: 100000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Уточнить требования арендодателя",
+      "Оценить возможность снятия",
+      "При необходимости заказать новый баннер",
+      "Согласовать установку или снятие"
+    ],
+    links: [
+      { text: "Печать баннеров Print.uz", url: "https://print.uz" },
+      { text: "Рекламные услуги Reklam.uz", url: "https://reklam.uz" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 5, short: "Вешалки",
+    title: "Вешалка",
+    description: "Убрать старые вешалки, подумать об альтернативных решениях.",
+    status: "todo", priority: "low",
+    budget: { uzs: 50000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Физически убрать старые вешалки",
+      "Исследовать альтернативные варианты",
+      "Рассмотреть крючки на стену или штангу в шкафу",
+      "Закупить необходимые материалы"
+    ],
+    links: [
+      { text: "Гардеробные системы", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/garderobnye-sistemy-i-shkafy/garderobnye-sistemy/" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 6, short: "AUX-кабель",
+    title: "AUX-кабель",
+    description: "Купить кабель AUX (3,5 мм jack) для подключения аудиоустройств.",
+    status: "todo", priority: "low",
+    budget: { uzs: 30000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Найти кабель 3,5 мм нужной длины",
+      "Сравнить цены и качество",
+      "Заказать или купить в магазине"
+    ],
+    links: [
+      { text: "AUX-кабель на Glotr", url: "https://glotr.uz/product/aux-kabel-3-5mm-1-5m-50812" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 7, short: "Кантин",
+    title: "Кантин (столы и стулья)",
+    description: "Найти и согласовать покупку новых столов и стульев для кантинной зоны.",
+    status: "todo", priority: "medium",
+    budget: { uzs: 2000000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Определить необходимое количество мебели",
+      "Выбрать стиль и дизайн",
+      "Найти поставщиков мебели",
+      "Сравнить цены и условия",
+      "Согласовать покупку и заказать"
+    ],
+    links: [
+      { text: "Офисные столы", url: "https://leroymerlin.uz/ru/tovary/dlya-doma/mebel-dlya-ofisa/stoly-dlya-ofisa/" },
+      { text: "Мебель Dekor.uz", url: "https://dekor.uz" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 8, short: "Тарелки",
+    title: "Тарелки для кофе-брейка",
+    description: "Добавить одноразовые тарелки в список регулярных закупок.",
+    status: "todo", priority: "low",
+    budget: { uzs: 50000, approx: true },
+    responsible: "Надыр",
+    steps: [
+      "Найти надёжного поставщика",
+      "Определить необходимый объём закупки",
+      "Добавить в список регулярных закупок",
+      "Контролировать наличие на складе"
+    ],
+    links: [
+      { text: "Одноразовая посуда Print.uz", url: "https://print.uz" }
+    ],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 9, short: "Автоответчик",
+    title: "Админка (автоответчик)",
+    description: "Настроить автоответчик в админке и предоставить доступ координаторам.",
+    status: "todo", priority: "medium",
+    budget: { uzs: 0 },
+    responsible: "Надыр",
+    steps: [
+      "Настроить автоответчик в используемой платформе",
+      "Создать учётные записи для координаторов",
+      "Выдать логины и пароли",
+      "Провести инструктаж по использованию"
+    ],
+    links: [],
+    dateCreated: "22.06.2026"
+  },
+  {
+    id: 10, short: "Схема проезда",
+    title: "Схема проезда",
+    description: "Совместно с отделом маркетинга снять видео или создать инструкцию со схемой проезда.",
+    status: "todo", priority: "medium",
+    budget: { uzs: 0, note: "внутренние ресурсы" },
+    responsible: "Надыр + Маркетинг",
+    steps: [
+      "Совместно с маркетингом обсудить формат",
+      "Подготовить сценарий или план съёмки",
+      "Снять видео или создать графическую инструкцию",
+      "Загрузить и опубликовать материал"
+    ],
+    links: [],
+    dateCreated: "22.06.2026"
+  }
+];
 
-            filteredTasks.forEach(task => {
-                const taskCard = document.createElement('div');
-                taskCard.className = 'task-card';
-                taskCard.onclick = () => openModal(task);
+const STATUSES = {
+  todo: { label: "К выполнению", cls: "st-todo",
+    icon: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/>' },
+  "in-progress": { label: "В работе", cls: "st-progress",
+    icon: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 2.5a5.5 5.5 0 0 1 0 11z" fill="currentColor"/>' },
+  done: { label: "Готово", cls: "st-done",
+    icon: '<circle cx="8" cy="8" r="6.3" fill="currentColor"/><path class="ico-cut" d="M5.3 8.2l1.8 1.8 3.6-3.9" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' },
+  "on-hold": { label: "На паузе", cls: "st-hold",
+    icon: '<circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.6 5.8v4.4M9.4 5.8v4.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>' }
+};
+const PRIORITIES = {
+  high: { label: "Высокий", group: "Высокий приоритет", level: 3 },
+  medium: { label: "Средний", group: "Средний приоритет", level: 2 },
+  low: { label: "Низкий", group: "Низкий приоритет", level: 1 }
+};
 
-                let linksHTML = '';
-                if (task.links && task.links.length > 0) {
-                    linksHTML = '<div class="task-links"><strong>Полезные ссылки:</strong>';
-                    task.links.forEach(link => {
-                        linksHTML += `<a href="${link.url}" target="_blank" onclick="event.stopPropagation()">→ ${link.text}</a>`;
-                    });
-                    linksHTML += '</div>';
-                }
+const STORE_KEY = "nadir-tasks-v2";
+const nf = new Intl.NumberFormat("ru-RU");
+const $ = (id) => document.getElementById(id);
+const filters = { status: "all", priority: "all", query: "" };
 
-                let stepsHTML = '';
-                if (task.steps && task.steps.length > 0) {
-                    stepsHTML = '<div style="margin-top: 10px;"><strong>План действий:</strong><ul style="margin-left: 20px; margin-top: 5px; color: #636e72;">';
-                    task.steps.forEach((step, index) => {
-                        stepsHTML += `<li>${step}</li>`;
-                    });
-                    stepsHTML += '</ul></div>';
-                }
+/* Статусы и отмеченные шаги храним только в этом браузере */
+const saved = (() => {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+})();
+TASKS.forEach((t) => {
+  const s = saved[t.id] || {};
+  if (STATUSES[s.status]) t.status = s.status;
+  t.checked = t.steps.map((_, i) => Boolean(s.checked && s.checked[i]));
+});
+function persist() {
+  const data = {};
+  TASKS.forEach((t) => { data[t.id] = { status: t.status, checked: t.checked }; });
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch (e) { /* хранилище недоступно */ }
+}
 
-                taskCard.innerHTML = `
-                    <div class="task-header">
-                        <span class="task-id">#${task.id}</span>
-                        <span class="task-status ${getStatusClass(task.status)}">${getStatusText(task.status)}</span>
-                    </div>
-                    <div class="task-title">${task.title}</div>
-                    <div class="task-description">${task.description}</div>
-                    <div class="task-details">
-                        <div class="detail-item">
-                            <div class="detail-label">Приоритет</div>
-                            <div class="detail-value ${getPriorityClass(task.priority)}">${task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Бюджет</div>
-                            <div class="detail-value">${task.budget}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Ответственный</div>
-                            <div class="detail-value">${task.responsible}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">Дата создания</div>
-                            <div class="detail-value">${task.dateCreated}</div>
-                        </div>
-                    </div>
-                    ${stepsHTML}
-                    ${linksHTML}
-                    <div class="task-actions">
-                        <button class="btn btn-primary" onclick="event.stopPropagation(); openModal('${task.id}')">Подробнее</button>
-                        <button class="btn btn-secondary" onclick="event.stopPropagation(); changeStatus('${task.id}')">Изменить статус</button>
-                    </div>
-                `;
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function plural(n, forms) {
+  const a = Math.abs(n) % 100, b = a % 10;
+  if (a > 10 && a < 20) return forms[2];
+  if (b > 1 && b < 5) return forms[1];
+  if (b === 1) return forms[0];
+  return forms[2];
+}
+function compactUzs(n) {
+  if (n >= 1e6) return (n / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млн";
+  if (n >= 1e3) return Math.round(n / 1e3).toLocaleString("ru-RU") + " тыс.";
+  return nf.format(n);
+}
+function budgetShort(b) {
+  if (b.usd) return "$" + nf.format(b.usd) + (b.plus ? "+" : "");
+  if (!b.uzs) return "0 сум";
+  return compactUzs(b.uzs) + " сум";
+}
+function budgetFull(b) {
+  if (b.usd) return "от $" + nf.format(b.usd);
+  if (!b.uzs) return b.note ? "0 сум, " + b.note : "0 сум";
+  return (b.approx ? "около " : "") + nf.format(b.uzs) + " сум";
+}
+function statusPill(status) {
+  const s = STATUSES[status];
+  return `<span class="pill ${s.cls}"><svg viewBox="0 0 16 16" aria-hidden="true">${s.icon}</svg>${s.label}</span>`;
+}
+function prioIcon(p) {
+  const n = PRIORITIES[p].level;
+  const rects = [0, 1, 2].map((i) =>
+    `<rect class="${i < n ? "" : "off"}" x="${i * 4.5}" y="${8 - i * 3.5}" width="3" height="${4 + i * 3.5}" rx=".6"/>`).join("");
+  return `<svg class="prio-ico prio-${p}" viewBox="0 0 12 12" aria-hidden="true">${rects}</svg>`;
+}
+function doneCount(t) { return t.checked.filter(Boolean).length; }
 
-                tasksGrid.appendChild(taskCard);
-            });
-        }
+function matches(t) {
+  const q = filters.query.trim().toLowerCase();
+  return (filters.status === "all" || t.status === filters.status)
+    && (filters.priority === "all" || t.priority === filters.priority)
+    && (!q || t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+}
 
-        function openModal(task) {
-            const modal = document.getElementById('taskModal');
-            const modalContent = document.getElementById('modalContent');
+/* Сводка */
+function renderSummary() {
+  const open = TASKS.filter((t) => t.status !== "done");
+  const done = TASKS.length - open.length;
+  $("statOpen").textContent = open.length;
+  $("statOpenNote").textContent = `из ${TASKS.length}, ${plural(done, ["готова", "готовы", "готово"])} ${done}`;
 
-            let linksHTML = '';
-            if (task.links && task.links.length > 0) {
-                linksHTML = '<div style="margin-top: 20px;"><strong>Полезные ссылки:</strong><br>';
-                task.links.forEach(link => {
-                    linksHTML += `<a href="${link.url}" target="_blank" style="color: #667eea; display: block; margin: 5px 0;">→ ${link.text}</a>`;
-                });
-                linksHTML += '</div>';
-            }
+  const high = open.filter((t) => t.priority === "high");
+  $("statHigh").textContent = high.length;
+  $("statHighNote").textContent = high.length ? high.map((t) => t.short).join(", ") : "Все закрыты";
 
-            let stepsHTML = '';
-            if (task.steps && task.steps.length > 0) {
-                stepsHTML = '<div style="margin-top: 20px;"><strong>План действий:</strong><ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">';
-                task.steps.forEach(step => {
-                    stepsHTML += `<li>${step}</li>`;
-                });
-                stepsHTML += '</ol></div>';
-            }
+  const uzsTasks = TASKS.filter((t) => t.budget.uzs > 0);
+  const uzs = uzsTasks.reduce((sum, t) => sum + t.budget.uzs, 0);
+  $("statUzs").textContent = compactUzs(uzs);
+  $("statUzsNote").textContent = `${uzsTasks.length} ${plural(uzsTasks.length, ["задача", "задачи", "задач"])}, ориентировочно`;
 
-            modalContent.innerHTML = `
-                <h2 style="color: #2d3436; margin-bottom: 15px;">#${task.id} ${task.title}</h2>
-                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                    <p style="color: #636e72; line-height: 1.6;">${task.description}</p>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                    <div><strong>Статус:</strong> <span class="task-status ${getStatusClass(task.status)}">${getStatusText(task.status)}</span></div>
-                    <div><strong>Приоритет:</strong> <span class="${getPriorityClass(task.priority)}">${task.priority === 'high' ? 'Высокий' : task.priority === 'medium' ? 'Средний' : 'Низкий'}</span></div>
-                    <div><strong>Бюджет:</strong> ${task.budget}</div>
-                    <div><strong>Ответственный:</strong> ${task.responsible}</div>
-                    <div><strong>Дата создания:</strong> ${task.dateCreated}</div>
-                </div>
-                ${stepsHTML}
-                ${linksHTML}
-                <div style="margin-top: 25px; display: flex; gap: 10px;">
-                    <button class="btn btn-primary" onclick="changeStatus('${task.id}')">Изменить статус</button>
-                    <button class="btn btn-secondary" onclick="copyTaskInfo('${task.id}')">Копировать информацию</button>
-                </div>
-            `;
+  const usdTasks = TASKS.filter((t) => t.budget.usd);
+  const usd = usdTasks.reduce((sum, t) => sum + t.budget.usd, 0);
+  $("statUsd").textContent = "$" + nf.format(usd) + (usdTasks.some((t) => t.budget.plus) ? "+" : "");
+  $("statUsdNote").textContent = usdTasks.map((t) => t.title).join(", ");
 
-            modal.style.display = 'flex';
-        }
+  const total = TASKS.reduce((s, t) => s + t.steps.length, 0);
+  const checked = TASKS.reduce((s, t) => s + doneCount(t), 0);
+  const meter = $("totalMeter");
+  meter.setAttribute("aria-valuemax", total);
+  meter.setAttribute("aria-valuenow", checked);
+  meter.firstElementChild.style.width = (checked / total * 100) + "%";
+  $("totalSteps").textContent = `${checked} из ${total} ${plural(total, ["шага", "шагов", "шагов"])}`;
+}
 
-        function closeModal() {
-            document.getElementById('taskModal').style.display = 'none';
-        }
+/* Фильтры */
+function renderFilters() {
+  const statusOpts = [["all", "Все", TASKS.length]].concat(
+    Object.entries(STATUSES).map(([k, s]) => [k, s.label, TASKS.filter((t) => t.status === k).length]));
+  $("statusFilter").innerHTML = "<legend>Статус</legend>" + statusOpts.map(([k, label, n]) => `
+    <input type="radio" name="status" id="f-status-${k}" value="${k}" ${filters.status === k ? "checked" : ""}>
+    <label for="f-status-${k}">${label}<span class="count">${n}</span></label>`).join("");
 
-        function changeStatus(taskId) {
-            const task = tasks.find(t => t.id == taskId);
-            if (task) {
-                const statuses = ['todo', 'in-progress', 'done', 'on-hold'];
-                const currentIndex = statuses.indexOf(task.status);
-                const nextIndex = (currentIndex + 1) % statuses.length;
-                task.status = statuses[nextIndex];
-                renderTasks(filterTasks());
-                updateStats();
-                alert(`Статус задачи #${taskId} изменен на: ${getStatusText(task.status)}`);
-            }
-        }
+  const prioOpts = [["all", "Любой приоритет"]].concat(Object.entries(PRIORITIES).map(([k, p]) => [k, p.label]));
+  $("priorityFilter").innerHTML = "<legend>Приоритет</legend>" + prioOpts.map(([k, label]) => `
+    <input type="radio" name="priority" id="f-prio-${k}" value="${k}" ${filters.priority === k ? "checked" : ""}>
+    <label for="f-prio-${k}">${k === "all" ? "" : prioIcon(k)}${label}</label>`).join("");
+}
 
-        function copyTaskInfo(taskId) {
-            const task = tasks.find(t => t.id == taskId);
-            if (task) {
-                const info = `Задача #${task.id}: ${task.title}\nСтатус: ${getStatusText(task.status)}\nПриоритет: ${task.priority}\nБюджет: ${task.budget}\nОтветственный: ${task.responsible}`;
-                navigator.clipboard.writeText(info).then(() => {
-                    alert('Информация скопирована в буфер обмена!');
-                });
-            }
-        }
+/* Реестр */
+function renderRegister() {
+  const html = Object.entries(PRIORITIES).map(([key, p]) => {
+    const items = TASKS.filter((t) => t.priority === key && matches(t));
+    if (!items.length) return "";
+    const all = TASKS.filter((t) => t.priority === key);
+    const uzs = all.reduce((s, t) => s + (t.budget.uzs || 0), 0);
+    const usd = all.reduce((s, t) => s + (t.budget.usd || 0), 0);
+    const money = [uzs ? compactUzs(uzs) + " сум" : "", usd ? "$" + nf.format(usd) + "+" : ""].filter(Boolean).join(" + ") || "без затрат";
+    const shown = items.length === all.length ? `${all.length} ${plural(all.length, ["задача", "задачи", "задач"])}` : `${items.length} из ${all.length}`;
+    return `
+      <div class="group-head">
+        <h3>${prioIcon(key)}${p.group}</h3>
+        <span class="group-meta">${shown} · ${money}</span>
+      </div>
+      <ul class="task-list">${items.map(taskRow).join("")}</ul>`;
+  }).join("");
 
-        function filterTasks() {
-            const statusFilter = document.getElementById('statusFilter').value;
-            const priorityFilter = document.getElementById('priorityFilter').value;
-            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+  $("register").innerHTML = html || `
+    <div class="empty">
+      <span>Нет задач с такими фильтрами.</span>
+      <button class="btn btn-ghost" type="button" id="resetFilters">Сбросить фильтры</button>
+    </div>`;
+}
+function taskRow(t) {
+  const d = doneCount(t), n = t.steps.length;
+  return `<li>
+    <button class="task${t.status === "done" ? " is-done" : ""}" type="button" data-id="${t.id}">
+      <span class="task-id">#${t.id}</span>
+      <span class="task-main">
+        <span class="task-title">${esc(t.title)}</span>
+        <span class="task-desc">${esc(t.description)}</span>
+      </span>
+      <span class="task-meta">
+        <span class="task-budget${t.budget.uzs === 0 ? " muted" : ""}">${budgetShort(t.budget)}</span>
+        <span class="task-plan" aria-label="Выполнено ${d} из ${n} шагов">
+          <span class="meter"><i style="width:${d / n * 100}%"></i></span>
+          <span>${d}/${n}</span>
+        </span>
+        ${statusPill(t.status)}
+      </span>
+    </button>
+  </li>`;
+}
 
-            return tasks.filter(task => {
-                const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-                const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
-                const matchesSearch = searchFilter === '' || 
-                    task.title.toLowerCase().includes(searchFilter) || 
-                    task.description.toLowerCase().includes(searchFilter);
+/* График бюджета: одна серия, полосы от общей базовой линии, значения у концов */
+function renderBudget() {
+  const rows = TASKS.filter((t) => t.budget.uzs > 0).sort((a, b) => b.budget.uzs - a.budget.uzs);
+  const max = rows[0].budget.uzs;
+  const total = rows.reduce((s, t) => s + t.budget.uzs, 0);
+  $("budgetBars").innerHTML = rows.map((t) => {
+    const share = Math.round(t.budget.uzs / total * 100);
+    return `<li class="bar-row">
+      <span class="bar-label">${esc(t.short)}</span>
+      <span class="bar-line">
+        <button class="bar" type="button" style="--w:${t.budget.uzs / max}" data-id="${t.id}"
+          data-tip="#${t.id} ${esc(t.title)}<br>${nf.format(t.budget.uzs)} сум · ${share}% бюджета в сумах"
+          aria-label="${esc(t.title)}: ${nf.format(t.budget.uzs)} сум"></button>
+        <span class="bar-value">${compactUzs(t.budget.uzs)}</span>
+      </span>
+    </li>`;
+  }).join("");
+  const usd = TASKS.filter((t) => t.budget.usd).map((t) => `«${t.title}» (от $${nf.format(t.budget.usd)})`);
+  const free = TASKS.filter((t) => !t.budget.usd && !t.budget.uzs).map((t) => `«${t.short}»`);
+  $("budgetNote").textContent =
+    `Не на шкале: ${usd.join(", ")} считается в долларах; ${free.join(" и ")} без затрат.`;
+}
 
-                return matchesStatus && matchesPriority && matchesSearch;
-            });
-        }
+/* Карточка задачи */
+let current = null;
+function openTask(id) {
+  const t = TASKS.find((x) => x.id === Number(id));
+  if (!t) return;
+  current = t;
+  $("dlgId").textContent = "#" + t.id;
+  $("dlgPriority").innerHTML = `${prioIcon(t.priority)}${PRIORITIES[t.priority].label} приоритет`;
+  $("dlgTitle").textContent = t.title;
+  $("dlgDesc").textContent = t.description;
+  $("dlgStatus").innerHTML = "<legend>Статус задачи</legend>" + Object.entries(STATUSES).map(([k, s]) => `
+    <input type="radio" name="dlg-status" id="dlg-status-${k}" value="${k}" ${t.status === k ? "checked" : ""}>
+    <label for="dlg-status-${k}"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" class="${s.cls}" style="color:var(--pill-fg)">${s.icon}</svg>${s.label}</label>`).join("");
+  $("dlgFacts").innerHTML = [
+    ["Бюджет", budgetFull(t.budget)],
+    ["Ответственный", t.responsible],
+    ["Создана", t.dateCreated],
+    ["Шагов в плане", t.steps.length]
+  ].map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
+  $("dlgSteps").innerHTML = t.steps.map((s, i) => `
+    <li><label for="step-${t.id}-${i}">
+      <input type="checkbox" id="step-${t.id}-${i}" data-step="${i}" ${t.checked[i] ? "checked" : ""}>
+      <span>${esc(s)}</span>
+    </label></li>`).join("");
+  updateDialogProgress();
+  $("dlgLinksWrap").hidden = !t.links.length;
+  $("dlgLinks").innerHTML = t.links.map((l) => {
+    let host = "";
+    try { host = new URL(l.url).hostname.replace(/^www\./, ""); } catch (e) { /* оставляем пустым */ }
+    return `<li><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.text)}<span class="host">${esc(host)}</span></a></li>`;
+  }).join("");
 
-        function updateStats() {
-            document.getElementById('totalTasks').textContent = tasks.length;
-            document.getElementById('todoTasks').textContent = tasks.filter(t => t.status === 'todo').length;
-            document.getElementById('highPriority').textContent = tasks.filter(t => t.priority === 'high').length;
-        }
+  const dlg = $("taskDialog");
+  if (typeof dlg.showModal === "function") { if (!dlg.open) dlg.showModal(); } else { dlg.setAttribute("open", ""); }
+}
+function closeTask() {
+  const dlg = $("taskDialog");
+  if (typeof dlg.close === "function") dlg.close(); else dlg.removeAttribute("open");
+}
+function updateDialogProgress() {
+  if (!current) return;
+  $("dlgProgress").textContent = `${doneCount(current)} из ${current.steps.length}`;
+}
+function refresh() {
+  renderSummary();
+  renderFilters();
+  renderRegister();
+}
 
-        // Event listeners for filters
-        document.getElementById('statusFilter').addEventListener('change', () => renderTasks(filterTasks()));
-        document.getElementById('priorityFilter').addEventListener('change', () => renderTasks(filterTasks()));
-        document.getElementById('searchFilter').addEventListener('input', () => renderTasks(filterTasks()));
+let toastTimer;
+function toast(msg) {
+  const el = $("toast");
+  const dlg = $("taskDialog");
+  /* открытый диалог лежит в верхнем слое, поэтому уведомление переносим внутрь него */
+  (dlg.open ? dlg : document.body).appendChild(el);
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+}
+function copySummary(t) {
+  const text = [
+    `Задача #${t.id}: ${t.title}`,
+    `Статус: ${STATUSES[t.status].label} · Приоритет: ${PRIORITIES[t.priority].label.toLowerCase()}`,
+    `Бюджет: ${budgetFull(t.budget)} · Ответственный: ${t.responsible}`,
+    `План: выполнено ${doneCount(t)} из ${t.steps.length}`,
+    ...t.steps.map((s, i) => `${t.checked[i] ? "[x]" : "[ ]"} ${i + 1}. ${s}`)
+  ].join("\n");
+  const fallback = () => {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    $("taskDialog").appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    ta.remove();
+    toast(ok ? "Сводка скопирована" : "Не удалось скопировать: браузер запретил доступ к буферу обмена");
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast("Сводка скопирована"), fallback);
+  } else {
+    fallback();
+  }
+}
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('taskModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
+/* События */
+document.addEventListener("change", (e) => {
+  const el = e.target;
+  if (el.name === "status") { filters.status = el.value; renderRegister(); }
+  else if (el.name === "priority") { filters.priority = el.value; renderRegister(); }
+  else if (el.name === "dlg-status" && current) {
+    current.status = el.value;
+    persist();
+    refresh();
+    toast(`#${current.id}: ${STATUSES[current.status].label}`);
+  } else if (el.dataset.step !== undefined && current) {
+    current.checked[Number(el.dataset.step)] = el.checked;
+    persist();
+    updateDialogProgress();
+    renderSummary();
+    renderRegister();
+  }
+});
+$("searchFilter").addEventListener("input", (e) => { filters.query = e.target.value; renderRegister(); });
+document.addEventListener("click", (e) => {
+  const opener = e.target.closest(".task, .bar");
+  if (opener) { openTask(opener.dataset.id); return; }
+  if (e.target.closest("#resetFilters")) {
+    filters.status = "all"; filters.priority = "all"; filters.query = "";
+    $("searchFilter").value = "";
+    renderFilters();
+    renderRegister();
+  }
+});
+$("dlgClose").addEventListener("click", closeTask);
+$("dlgDone").addEventListener("click", closeTask);
+$("dlgCopy").addEventListener("click", () => current && copySummary(current));
+$("taskDialog").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeTask(); });
 
-        // Initialize
-        renderTasks();
-        updateStats();
-    </script>
+/* Подсказка у полос графика */
+const tip = $("tooltip");
+function showTip(bar) {
+  tip.innerHTML = bar.dataset.tip;
+  tip.hidden = false;
+  const r = bar.getBoundingClientRect();
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  const x = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
+  const y = r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8;
+  tip.style.left = x + "px";
+  tip.style.top = y + "px";
+}
+function hideTip() { tip.hidden = true; }
+$("budgetBars").addEventListener("mouseover", (e) => { const b = e.target.closest(".bar"); if (b) showTip(b); });
+$("budgetBars").addEventListener("mouseout", (e) => { if (e.target.closest(".bar")) hideTip(); });
+$("budgetBars").addEventListener("focusin", (e) => { const b = e.target.closest(".bar"); if (b) showTip(b); });
+$("budgetBars").addEventListener("focusout", hideTip);
+window.addEventListener("scroll", hideTip, { passive: true });
+
+refresh();
+renderBudget();
+</script>
 </body>
 </html>
